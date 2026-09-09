@@ -39,7 +39,7 @@ export default function ConfirmationPage() {
       try {
         setOrder(JSON.parse(raw));
       } catch {
-        /* usa el pedido de ejemplo */
+        return;
       }
     }
   }, []);

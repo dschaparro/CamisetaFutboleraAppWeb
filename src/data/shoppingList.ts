@@ -1,4 +1,3 @@
-// Módulo: Lista de Compras — datos de ejemplo (RF-14c a RF-14f, RN-13, RN-14).
 export type ShoppingListStatus = "Pendiente" | "Conseguido" | "No conseguido";
 
 export type ShoppingListItem = {

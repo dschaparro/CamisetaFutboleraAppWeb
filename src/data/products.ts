@@ -1,6 +1,3 @@
-// Módulo: Catálogo — datos de ejemplo (RF-05, RF-06, RF-09).
-// Sustituir por una consulta real a la tabla `productos` de Supabase
-// (ver src/lib/supabaseClient.ts) cuando el backend ERP esté listo.
 export type Product = {
   id: string;
   club: string;
