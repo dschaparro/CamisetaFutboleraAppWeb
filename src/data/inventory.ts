@@ -1,5 +1,3 @@
-// Módulo: Compras a proveedor / Costeo — datos de ejemplo (RF-10 a RF-14b, RN-11).
-// Sustituir por una consulta real a Supabase cuando el Backend ERP esté listo.
 export type InventoryRow = {
   name: string;
   sku: string;

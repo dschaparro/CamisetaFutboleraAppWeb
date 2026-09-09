@@ -1,0 +1,161 @@
+{
+  "info": {
+    "name": "Camiseta Futbolera — Identidad",
+    "description": "JWT propio (HS256) en cookie httpOnly `cf_session`. No hay Bearer ni localStorage.\n\n**Antes:** `npm run dev` y rellena `email` / `password` (Variables de la colección) con un usuario de `public.usuarios`.\n\n**Cómo ver el JWT**\n1. Corre *Login OK*.\n2. En la respuesta: pestaña **Cookies** o **Headers → Set-Cookie** (`cf_session=eyJ...`).\n3. Copia el valor (tres partes separadas por `.`) y pégalo en jwt.io — solo el payload; no pegues `JWT_SECRET`.\n4. *Me con sesión* reutiliza la cookie del jar de Postman (no hace falta Authorization).\n\nOrden sugerido del runner: Login inválido → Login OK → Me → Logout → Me sin sesión.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "baseUrl", "value": "http://localhost:3000" },
+    { "key": "email", "value": "stiven@camisetafutbolera.com" },
+    { "key": "password", "value": "" },
+    { "key": "jwt", "value": "" }
+  ],
+  "item": [
+    {
+      "name": "1. Login inválido",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('401 y error genérico', function () {",
+              "  pm.response.to.have.status(401);",
+              "  const body = pm.response.json();",
+              "  pm.expect(body.error.code).to.eql('INVALID_CREDENTIALS');",
+              "  pm.expect(body.error.message).to.eql('Correo o contraseña incorrectos');",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"email\": \"{{email}}\",\n  \"password\": \"clave-incorrecta\"\n}"
+        },
+        "url": "{{baseUrl}}/api/auth/login",
+        "description": "No debe revelar si el correo existe. El cuerpo no trae hash ni JWT."
+      }
+    },
+    {
+      "name": "2. Login OK",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('200, usuario sin hash, cookie cf_session', function () {",
+              "  pm.response.to.have.status(200);",
+              "  const body = pm.response.json();",
+              "  pm.expect(body.user).to.have.keys('id', 'email', 'nombre', 'rol');",
+              "  pm.expect(body.user).to.not.have.property('passwordHash');",
+              "  pm.expect(body.user).to.not.have.property('password_hash');",
+              "  const setCookie = pm.response.headers.get('Set-Cookie') || '';",
+              "  pm.expect(setCookie).to.include('cf_session=');",
+              "  pm.expect(setCookie.toLowerCase()).to.include('httponly');",
+              "  const token = setCookie.match(/cf_session=([^;]+)/);",
+              "  if (token) pm.collectionVariables.set('jwt', decodeURIComponent(token[1]));",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"email\": \"{{email}}\",\n  \"password\": \"{{password}}\"\n}"
+        },
+        "url": "{{baseUrl}}/api/auth/login",
+        "description": "Guarda `cf_session` (JWT) en cookies de Postman y en la variable `jwt` de la colección."
+      }
+    },
+    {
+      "name": "3. Me con sesión",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('200 y mismas claves públicas', function () {",
+              "  pm.response.to.have.status(200);",
+              "  const body = pm.response.json();",
+              "  pm.expect(body.user).to.have.keys('id', 'email', 'nombre', 'rol');",
+              "  pm.expect(body).to.not.have.property('token');",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "{{baseUrl}}/api/auth/me",
+        "description": "Postman envía sola la cookie `cf_session`. No uses header Authorization."
+      }
+    },
+    {
+      "name": "4. Logout",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('200 ok', function () {",
+              "  pm.response.to.have.status(200);",
+              "  pm.expect(pm.response.json().ok).to.eql(true);",
+              "});",
+              "pm.collectionVariables.set('jwt', '');"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [],
+        "url": "{{baseUrl}}/api/auth/logout",
+        "description": "Caduca `cf_session` (maxAge 0)."
+      }
+    },
+    {
+      "name": "5. Me sin sesión",
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "const jar = pm.cookies.jar();",
+              "jar.unset(pm.collectionVariables.get('baseUrl'), 'cf_session', function () {});"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('401 UNAUTHENTICATED', function () {",
+              "  pm.response.to.have.status(401);",
+              "  pm.expect(pm.response.json().error.code).to.eql('UNAUTHENTICATED');",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "{{baseUrl}}/api/auth/me",
+        "description": "Tras logout (o sin cookie) debe fallar. El proxy también cubre otras `/api/*`."
+      }
+    }
+  ]
+}

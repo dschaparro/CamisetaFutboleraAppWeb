@@ -1,4 +1,3 @@
-// Módulo: Ventas / Pedidos — datos de ejemplo (RF-16 a RF-19).
 export type OrderStatus = "Alistamiento" | "Enviado" | "Entregado" | "Pendiente de pago";
 
 export type Order = {
