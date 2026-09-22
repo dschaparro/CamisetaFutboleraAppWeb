@@ -15,9 +15,6 @@ export default function InformesIaPage() {
   );
   const [loading, setLoading] = useState(false);
 
-  // Genera un informe de ejemplo — cuando el SDK de Claude esté instalado
-  // (ver src/lib/claude.ts) esto debe llamar a un Route Handler en el
-  // servidor, p. ej. POST /api/informes, en vez de simular una espera aquí.
   function generate() {
     setLoading(true);
     setTimeout(() => setLoading(false), 1100);

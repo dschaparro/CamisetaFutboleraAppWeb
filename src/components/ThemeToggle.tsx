@@ -2,15 +2,6 @@
 
 import { useEffect, useState } from "react";
 
-/**
- * Selector de tema claro/oscuro.
- * - Al cargar, respeta lo que el usuario eligió antes (localStorage) o,
- *   si nunca eligió nada, el tema del sistema operativo.
- * - Al hacer clic, fija el tema elegido en <html data-theme="..."> y lo
- *   recuerda en localStorage para la próxima visita.
- * - El script inline en layout.tsx aplica el valor guardado ANTES de pintar
- *   la página, para que no se vea un parpadeo del tema equivocado.
- */
 export default function ThemeToggle() {
   const [theme, setTheme] = useState<"light" | "dark" | null>(null);
 
@@ -31,7 +22,6 @@ export default function ThemeToggle() {
     window.localStorage.setItem("theme", next);
   }
 
-  // Evita renderizar un ícono "equivocado" un instante antes de saber el tema real.
   if (theme === null) {
     return <button className="theme-toggle" aria-label="Cambiar tema" disabled />;
   }

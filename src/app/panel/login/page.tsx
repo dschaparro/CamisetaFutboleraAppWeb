@@ -1,11 +1,38 @@
 "use client";
 
-import { useState } from "react";
+import { FormEvent, useState } from "react";
 import { useRouter } from "next/navigation";
 
 export default function LoginPage() {
-  const [role, setRole] = useState<"Administrador" | "Vendedor">("Administrador");
   const router = useRouter();
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState<string | null>(null);
+  const [pending, setPending] = useState(false);
+
+  async function onSubmit(event: FormEvent) {
+    event.preventDefault();
+    setError(null);
+    setPending(true);
+    try {
+      const response = await fetch("/api/auth/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password }),
+      });
+      const data = (await response.json()) as { error?: { message?: string } };
+      if (!response.ok) {
+        setError(data.error?.message ?? "No se pudo iniciar sesión");
+        return;
+      }
+      router.push("/panel/dashboard");
+      router.refresh();
+    } catch {
+      setError("No se pudo conectar con el servidor");
+    } finally {
+      setPending(false);
+    }
+  }
 
   return (
     <div className="login-shell">
@@ -20,37 +47,44 @@ export default function LoginPage() {
         </div>
       </div>
       <div className="login-form-wrap">
-        <div className="login-form">
+        <form className="login-form" onSubmit={onSubmit}>
           <div className="eyebrow">Acceso restringido</div>
           <h1>Ingresa a tu panel</h1>
-          <div className="role-toggle">
-            <button className={role === "Administrador" ? "active" : ""} onClick={() => setRole("Administrador")}>
-              Administrador
-            </button>
-            <button className={role === "Vendedor" ? "active" : ""} onClick={() => setRole("Vendedor")}>
-              Vendedor
-            </button>
-          </div>
           <div className="field" style={{ marginBottom: 14 }}>
-            <label>Correo electrónico</label>
-            <input defaultValue="stiven@camisetafutbolera.com" />
+            <label htmlFor="email">Correo electrónico</label>
+            <input
+              id="email"
+              type="email"
+              autoComplete="username"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              required
+            />
           </div>
           <div className="field" style={{ marginBottom: 8 }}>
-            <label>Contraseña</label>
-            <input type="password" defaultValue="********" />
+            <label htmlFor="password">Contraseña</label>
+            <input
+              id="password"
+              type="password"
+              autoComplete="current-password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              required
+            />
           </div>
-          <div style={{ textAlign: "right", marginBottom: 18 }}>
-            <a href="#" style={{ fontSize: ".78rem", color: "var(--blue)" }}>¿Olvidaste tu contraseña?</a>
-          </div>
-          <button className="btn btn-gold btn-block" style={{ padding: 13 }} onClick={() => router.push("/panel/dashboard")}>
-            Iniciar sesión ({role})
+          {error && (
+            <p className="form-error" role="alert">
+              {error}
+            </p>
+          )}
+          <button className="btn btn-gold btn-block" style={{ padding: 13, marginTop: 12 }} disabled={pending}>
+            {pending ? "Verificando…" : "Iniciar sesión"}
           </button>
           <p className="login-note">
             Este panel es de uso interno. Cada acción queda registrada para trazabilidad (RN-08).
-            <br />
-            <em>Nota: este botón todavía no valida contra Supabase Auth — ver src/lib/supabaseClient.ts.</em>
+            El rol (Administrador o Vendedor) lo define la cuenta en la base de datos, no este formulario.
           </p>
-        </div>
+        </form>
       </div>
     </div>
   );

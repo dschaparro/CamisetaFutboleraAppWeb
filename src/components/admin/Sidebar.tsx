@@ -1,8 +1,10 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
 import ThemeToggle from "@/components/ThemeToggle";
+import type { Rol } from "@/modules/identidad/domain/types";
 
 const NAV = [
   { group: "General", items: [{ href: "/panel/dashboard", icon: "▤", label: "Dashboard" }] },
@@ -32,6 +34,33 @@ const SOON = [
 
 export default function Sidebar() {
   const pathname = usePathname();
+  const router = useRouter();
+  const [user, setUser] = useState<{ nombre: string; rol: Rol } | null>(null);
+  const [sessionReady, setSessionReady] = useState(false);
+
+  useEffect(() => {
+    let cancelled = false;
+    fetch("/api/auth/me")
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data: { user?: { nombre: string; rol: Rol } } | null) => {
+        if (!cancelled && data?.user) setUser(data.user);
+      })
+      .catch(() => {
+        if (!cancelled) setUser(null);
+      })
+      .finally(() => {
+        if (!cancelled) setSessionReady(true);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  async function logout() {
+    await fetch("/api/auth/logout", { method: "POST" });
+    router.push("/panel/login");
+    router.refresh();
+  }
 
   return (
     <aside className="admin-sidebar">
@@ -62,12 +91,15 @@ export default function Sidebar() {
         </div>
       ))}
       <div className="side-user">
-        <div className="av">S</div>
-        <div><b>Stiven</b><span>Administrador</span></div>
+        <div className="av">{user ? user.nombre.slice(0, 1).toUpperCase() : "—"}</div>
+        <div>
+          <b>{sessionReady ? (user?.nombre ?? "Sesión") : "Cargando…"}</b>
+          <span>{user?.rol ?? ""}</span>
+        </div>
       </div>
-      <Link className="btn btn-ghost btn-sm" style={{ color: "#C9D2E3" }} href="/">
-        ← Salir a la tienda
-      </Link>
+      <button className="btn btn-ghost btn-sm" style={{ color: "var(--ink-mute)" }} type="button" onClick={logout}>
+        Cerrar sesión
+      </button>
     </aside>
   );
 }

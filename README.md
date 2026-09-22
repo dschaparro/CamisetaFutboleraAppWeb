@@ -4,23 +4,18 @@ Plataforma web de comercio electrónico con componente ERP e inteligencia
 artificial integrada, para la gestión del emprendimiento Camiseta Futbolera.
 Proyecto de grado — Ingeniería de Software.
 
-Este repositorio contiene el **frontend navegable** (tienda + panel
-administrativo) construido a partir de los 15 mockups documentados en
-`5. MOCKUPS/V2 - Mockups e Interfaz | Camiseta Futbolera`, ya integrado en un
-proyecto **Next.js con TypeScript y App Router**, tal como lo define el
-documento de Arquitectura de Software v2. Los datos que ves (productos,
-pedidos, inventario, reportes) son de ejemplo — viven en `src/data/*.ts` —
-porque el backend (Supabase) y las integraciones (Wompi, API de Claude)
-todavía no están conectadas (ver Tablero de Sprints, Sprint 0 y 1).
+Este repositorio contiene la **tienda y el panel** (mockups v2) en Next.js App Router.
+`identidad` ya persiste en Postgres (login JWT). Catálogo, pedidos, compras, pagos e IA
+siguen con datos de ejemplo en `src/data/*.ts` hasta que cada módulo tenga migración.
 
 ## Stack (según Arquitectura de Software v2)
 
 | Componente | Tecnología | Estado en este repo |
 |---|---|---|
 | Frontend | Next.js (React) + TypeScript, App Router | ✅ Implementado |
-| Backend / API | API Routes de Next.js (Node.js + TypeScript) | ⏳ Por crear en `src/app/api/*` |
-| Base de datos | PostgreSQL vía Supabase | ⏳ Stub en `src/lib/supabaseClient.ts` |
-| Autenticación | Supabase Auth | ⏳ El login del panel todavía no valida contra Supabase |
+| Backend / API | Route Handlers en `src/app/api/*` | ✅ Login JWT (`/api/auth/*`); resto pendiente |
+| Base de datos | PostgreSQL vía Supabase (Data API) | ✅ Cliente servidor + tabla `usuarios` |
+| Autenticación | JWT HS256 (`node:crypto`) + cookie httpOnly | ✅ Panel (`cf_session`) |
 | Almacenamiento | Supabase Storage | ⏳ Sin conectar |
 | Pasarela de pago | Wompi | ⏳ El checkout simula la confirmación, no llama a Wompi |
 | Inteligencia artificial | API de Claude (Anthropic) | ⏳ Stub en `src/lib/claude.ts`, respuestas de ejemplo en el cliente |
@@ -43,6 +38,20 @@ npm run dev
 Abre http://localhost:3000 — la tienda vive en `/` y el panel administrativo
 en `/panel/login`.
 
+En Windows, `npm run dev` usa `--use-system-ca` para que Node confíe en los
+certificados del sistema (antivirus / red corporativa), igual que el navegador.
+Fuente: https://nodejs.org/learn/http/enterprise-network-configuration
+
+### Conectar Postgres (Supabase) y el login JWT
+
+1. En Supabase: Project URL (Connect o Settings → General) y **Secret key** (`sb_secret_...`) a `.env.local`.
+2. Genera `JWT_SECRET` (mínimo 32 caracteres) con Node; **no** copies las “JWT Keys” del dashboard — esas son de Auth de Supabase, no del panel.
+3. En el SQL Editor ejecuta `supabase/migrations/001_usuarios.sql`.
+4. `npm run hash-password -- "TuClaveSegura"` y descomenta el `INSERT` en el SQL.
+5. `npm run dev` y entra en `/panel/login`.
+
+Sin `.env.local` el login responde 503 (no hay conexión); el panel redirige a login si no hay cookie válida.
+
 Para verificar que compila igual que en producción (lo que corre en Vercel):
 
 ```bash
@@ -55,56 +64,41 @@ npm run start
 ```
 src/
   app/
-    (store)/          → Tienda: home/catálogo, producto, carrito, checkout,
-                         confirmación, términos (route group, no cambia la URL)
-    panel/             → Panel administrativo: login, dashboard, inventario,
-                         pedidos, venta manual, lista de compras, reportes,
-                         informes con IA
-    globals.css         → Design system (tokens de color, tipografía, componentes)
+    (store)/          → Tienda (route group; no cambia la URL)
+    panel/
+      login/          → Acceso al backoffice
+      (admin)/        → Dashboard, inventario, pedidos… (con Sidebar)
+    globals.css
+  modules/identidad/  → domain / application / infrastructure
   components/
-    store/               → Header, Footer, ChatWidget (asistente de IA)
-    admin/                → Sidebar, BarChart
   context/
-    CartContext.tsx       → Estado del carrito (React Context), módulo Ventas
-  data/
-    products.ts, inventory.ts, orders.ts, shoppingList.ts
-                           → Datos de ejemplo — reemplazar por consultas a
-                             Supabase cuando el backend ERP esté listo
+  data/               → Mocks de catálogo/pedidos hasta persistir el módulo
   lib/
-    money.ts               → Formateo de moneda (COP)
-    supabaseClient.ts       → Módulo Usuarios/Datos — stub, ver más abajo
-    claude.ts                → Módulo Inteligencia Artificial — stub, ver más abajo
+    money.ts
+    supabaseClient.ts → getSupabaseConfig() (solo servidor)
+    claude.ts         → stub
+tests/modules/identidad/
 ```
 
-La organización por módulo (usuarios, catálogo, ventas, lista de compras,
-compras a proveedor, pagos, envíos, IA, reportes) sigue la Arquitectura
-Lógica en Capas del documento de Arquitectura de Software v2; en Next.js con
-App Router esos módulos se reparten entre `src/app/(store)`, `src/app/panel`,
-`src/data` y `src/lib` en vez de vivir en carpetas separadas por nombre.
+Los módulos de negocio viven en `src/modules/<modulo>/`. `src/app` solo pinta y expone Route Handlers.
 
 ## Qué falta para que esto sea la app real (no solo el frontend)
 
-Según el propio **Tablero de Sprints** del equipo (Sprint 0, 1 de 9 tareas en
-"Hecho"), esto es lo que falta conectar, en orden de bloqueo:
+Login JWT del panel y Postgres (Data API) ya están conectados (`identidad`).
+Falta persistir el resto de módulos (catálogo, pedidos, Wompi, Claude) y desplegar.
 
-1. **Repositorio compartido en GitHub** — confirmar que existe y que los tres
-   integrantes tienen acceso, y subir este código ahí.
-2. **Supabase** — el proyecto de desarrollo ya existe (Auth probado). Falta
-   migrar el modelo de datos completo (Diagrama de Clases) y conectar
-   `src/lib/supabaseClient.ts` reemplazando los arrays de `src/data/*.ts`.
-3. **API de Claude** — instalar `@anthropic-ai/sdk`, configurar
-   `ANTHROPIC_API_KEY` en `.env.local`, y crear los Route Handlers
-   (`src/app/api/asistente/route.ts`, `src/app/api/informes/route.ts`) que
-   reemplacen las respuestas de ejemplo de `ChatWidget.tsx` e
-   `informes-ia/page.tsx`.
-4. **Wompi** — llaves de sandbox, e integrar el cobro real en
-   `checkout/page.tsx` (hoy solo simula la confirmación).
-5. **Correo transaccional** (Resend/SMTP) — para factura y notificaciones.
-6. **Vercel** — conectar el repositorio para despliegue automático.
+Según el **Tablero de Sprints** (Sprint 0), lo que sigue:
+
+1. **GitHub** — confirmar acceso de los tres integrantes.
+2. **Supabase** — migrar el modelo de datos (Diagrama de Clases) y reemplazar `src/data/*.ts` módulo a módulo, copiando `src/modules/identidad`.
+3. **API de Claude** — Route Handlers (`/api/asistente`, `/api/informes`) cuando toque el módulo `ia`.
+4. **Wompi** — sandbox en checkout (hoy simula la confirmación).
+5. **Correo transaccional** — factura y notificaciones.
+6. **Vercel** — despliegue.
 
 ## Créditos
 
 Basado en la documentación del proyecto de grado: Propuesta, Marco de
 Proyecto, Levantamiento de Requerimientos, Diagramas UML, Arquitectura de
 Software y Mockups de Interfaz (v2) — Stiven Nicolás Gamba Robayo, Juan
-Esteban Arias Arenas y Deivy Santiago Chaparro Tinjaca.
+Esteban Arias Arenas, Deivy Santiago Chaparro Tinjaca, David Santiago Ruiz Patarroyo.

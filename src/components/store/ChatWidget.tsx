@@ -2,9 +2,6 @@
 
 import { useState } from "react";
 
-// Respuestas de ejemplo — cuando el SDK de Claude esté instalado (ver
-// src/lib/claude.ts) esto debe llamar a un Route Handler en el servidor,
-// p. ej. POST /api/asistente, en vez de responder en el cliente.
 const CHAT_REPLIES = [
   "Esta referencia tiene un corte ajustado (fit jugador). Si en otras marcas usas M, te recomiendo pedir talla L para que quede más cómoda. ¿Quieres que te muestre la guía de tallas completa?",
   "El estampado del dorsal se aplica antes del envío y no tiene costo adicional — solo escribe el nombre y número que quieres en el campo de personalización.",
