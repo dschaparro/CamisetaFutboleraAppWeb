@@ -43,7 +43,7 @@ export default function LoginPage() {
         <div className="login-feat">
           <div>Control de inventario y compras bajo pedido</div>
           <div>Trazabilidad de ventas, envíos y margen real</div>
-          <div>Roles diferenciados: Administrador y Vendedor</div>
+          <div>Roles con permisos propios: Administrador, Vendedor, Bodega y Marketing</div>
         </div>
       </div>
       <div className="login-form-wrap">
@@ -81,8 +81,8 @@ export default function LoginPage() {
             {pending ? "Verificando…" : "Iniciar sesión"}
           </button>
           <p className="login-note">
-            Este panel es de uso interno. Cada acción queda registrada para trazabilidad (RN-08).
-            El rol (Administrador o Vendedor) lo define la cuenta en la base de datos, no este formulario.
+            Este panel es de uso interno. Cada persona ve solo los módulos de su rol, que define el
+            Administrador en «Usuarios y roles».
           </p>
         </form>
       </div>

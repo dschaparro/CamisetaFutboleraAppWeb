@@ -1,12 +1,12 @@
 import { NextResponse } from "next/server";
 import { iniciarSesion } from "@/modules/identidad/application/iniciar-sesion";
-import { findUsuarioByEmail } from "@/modules/identidad/infrastructure/usuarios-repo";
+import { usuariosRepo } from "@/modules/identidad/infrastructure/repositorios";
 import { allowAttempt } from "@/modules/identidad/infrastructure/rate-limit";
 import { SESSION_COOKIE, sessionCookieOptions } from "@/modules/identidad/infrastructure/session-cookie";
 import { getJwtSecret } from "@/modules/identidad/infrastructure/jwt-secret";
 
 const GENERIC_ERROR = "Correo o contraseña incorrectos";
-const UNAVAILABLE = "No se pudo validar el acceso. Revisa la conexión a Supabase.";
+const UNAVAILABLE = "No se pudo validar el acceso. Intenta de nuevo en un momento.";
 
 function clientKey(request: Request): string {
   const forwarded = request.headers.get("x-forwarded-for");
@@ -15,7 +15,8 @@ function clientKey(request: Request): string {
 }
 
 export async function POST(request: Request) {
-  if (!allowAttempt(`login:${clientKey(request)}`)) {
+  // El límite de intentos solo rige en producción: en desarrollo no estorba al probar.
+  if (process.env.NODE_ENV === "production" && !allowAttempt(`login:${clientKey(request)}`)) {
     return NextResponse.json(
       { error: { code: "RATE_LIMITED", message: "Demasiados intentos. Prueba más tarde." } },
       { status: 429 },
@@ -45,7 +46,7 @@ export async function POST(request: Request) {
 
   let result: Awaited<ReturnType<typeof iniciarSesion>>;
   try {
-    result = await iniciarSesion(email, password, { findByEmail: findUsuarioByEmail }, secret);
+    result = await iniciarSesion(email, password, usuariosRepo(), secret);
   } catch {
     return NextResponse.json({ error: { code: "UNAVAILABLE", message: UNAVAILABLE } }, { status: 503 });
   }

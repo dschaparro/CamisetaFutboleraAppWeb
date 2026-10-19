@@ -1,149 +1,109 @@
 "use client";
 
-import { useMemo, useState } from "react";
 import Link from "next/link";
-import { PRODUCTS, crestGradient } from "@/data/products";
-import { money } from "@/lib/money";
+import BannerCarrusel from "@/components/store/BannerCarrusel";
+import Imagen from "@/components/store/Imagen";
+import ProductCard, { TarjetasCargando } from "@/components/store/ProductCard";
+import { useCatalogo } from "@/components/store/useCatalogo";
 
-const FILTERS = [
-  { key: "all", label: "Todos" },
-  { key: "europeo", label: "Clubes europeos" },
-  { key: "colombiano", label: "Fútbol colombiano" },
-  { key: "seleccion", label: "Selecciones" },
-  { key: "retro", label: "Retro" },
-  { key: "personalizable", label: "Personalizable" },
-] as const;
-
+/** Inicio: banners, ofertas, ligas y novedades (todo parametrizado en el panel). */
 export default function HomePage() {
-  const [filter, setFilter] = useState<(typeof FILTERS)[number]["key"]>("all");
-  const [query, setQuery] = useState("");
-
-  const filtered = useMemo(() => {
-    const q = query.toLowerCase();
-    return PRODUCTS.filter((p) => {
-      const matchFilter =
-        filter === "all" ||
-        p.cat === filter ||
-        (filter === "retro" && p.retro) ||
-        (filter === "personalizable" && p.personalizable);
-      const matchQuery = !q || p.name.toLowerCase().includes(q) || p.club.toLowerCase().includes(q);
-      return matchFilter && matchQuery;
-    });
-  }, [filter, query]);
+  const { catalogo, error } = useCatalogo();
+  const productos = catalogo?.productos ?? [];
+  const ofertas = productos.filter((p) => p.promocion && p.disponibilidad !== "agotado");
+  const novedades = productos.filter((p) => p.etiqueta === "Nuevo" || p.nombre.includes("2027")).slice(0, 4);
 
   return (
     <>
-      <section className="hero">
-        <div className="wrap">
-          <div>
-            <div className="eyebrow">Temporada 2027 · Nueva colección</div>
-            <h1>
-              Tu pasión
-              <br />
-              se viste aquí
-            </h1>
-            <p className="lead">
-              Camisetas de clubes europeos, selecciones y equipos colombianos, con tu nombre y tu
-              dorsal. Personalización de parche de liga y estampado incluida.
-            </p>
-            <div className="hero-actions">
-              <a
-                className="btn btn-gold"
-                href="#catalogo"
-                onClick={(e) => {
-                  e.preventDefault();
-                  document.getElementById("catalogo")?.scrollIntoView({ behavior: "smooth" });
-                }}
-              >
-                Ver catálogo
-              </a>
-              <Link className="btn btn-outline" style={{ borderColor: "#3A4C6E", color: "#fff" }} href={`/producto/${PRODUCTS[0].id}`}>
-                Cómo personalizar
-              </Link>
-            </div>
-            <div className="hero-badges">
-              <div><b>+50</b> pedidos al mes</div>
-              <div><b>1-2 días</b> entrega en Bogotá</div>
-              <div><b>100%</b> compra bajo pedido, sin sobre-stock</div>
-            </div>
-          </div>
-          <div className="hero-visual">
-            <div className="jersey-badge">CF</div>
-          </div>
-        </div>
-      </section>
+      {catalogo ? <BannerCarrusel banners={catalogo.banners} /> : <div className="dp-esqueleto cargando-card" aria-busy="true" />}
 
       <div className="wrap">
-        <div id="catalogo" className="section-head">
-          <div>
-            <h2>Camisetas destacadas</h2>
-            <p className="section-note">
-              El stock disponible se confirma al momento de tu pedido — todas nuestras camisetas se
-              consiguen bajo pedido con proveedor.
-            </p>
+        {error && (
+          <div className="card" style={{ padding: 20, marginTop: 24 }}>
+            No pudimos cargar las camisetas. Recarga la página en un momento.
           </div>
-        </div>
+        )}
 
-        <div className="filters-bar">
-          <div className="search">
-            🔎 <input placeholder="Buscar por club, selección o jugador..." value={query} onChange={(e) => setQuery(e.target.value)} />
-          </div>
-          {FILTERS.map((f) => (
-            <button
-              key={f.key}
-              className={`chip${filter === f.key ? " active" : ""}`}
-              onClick={() => setFilter(f.key)}
-            >
-              {f.label}
-            </button>
-          ))}
-        </div>
+        {(!catalogo || ofertas.length > 0) && (
+          <section>
+            <div className="section-head">
+              <div>
+                <h2>🔥 Ofertas de la semana</h2>
+                <p className="section-note">Descuentos por tiempo limitado. El precio con descuento se aplica en el carrito.</p>
+              </div>
+              <Link className="btn btn-outline btn-sm" href="/catalogo/todas?ofertas=1">
+                Ver todas las ofertas →
+              </Link>
+            </div>
+            {catalogo ? (
+              <div className="product-grid">
+                {ofertas.map((p) => (
+                  <ProductCard key={p.id} p={p} />
+                ))}
+              </div>
+            ) : (
+              <TarjetasCargando />
+            )}
+          </section>
+        )}
 
-        <div className="product-grid">
-          {filtered.map((p) => (
-            <Link key={p.id} href={`/producto/${p.id}`} className="product-card">
-              <div className="product-media">
-                {p.tag && <span className={`product-tag${p.tag === "Retro" ? " retro" : ""}`}>{p.tag}</span>}
-                <div className="crest" style={{ background: crestGradient(p.cat) }}>{p.initials}</div>
-              </div>
-              <div className="product-body">
-                <span className="club">{p.club}</span>
-                <h3>{p.name.replace("Camiseta ", "")}</h3>
-                <span className="meta">Talla S–XL · {p.retro ? "Manga corta" : "Manga corta/larga"}</span>
-                <div className="price-row">
-                  <span className="price tabular">{money(p.price)}</span>
-                  {p.personalizable && <span className="custom-flag">Personalizable</span>}
-                </div>
-              </div>
+        <section>
+          <div className="section-head">
+            <h2>Compra por liga</h2>
+            <Link className="link-mas" href="/catalogo">
+              Ver todas →
             </Link>
-          ))}
-        </div>
-      </div>
+          </div>
+          <div className="ligas-mini">
+            {(catalogo?.ligas ?? []).map((l) => (
+              <Link key={l.id} href={`/catalogo/${l.id}`} className="liga-mini" style={{ background: `linear-gradient(135deg, ${l.colores[0]}, ${l.colores[1]})` }}>
+                {l.imagen && <Imagen refImagen={l.imagen} alt="" sizes="200px" posicion={l.posicion} className="liga-foto" />}
+                <span className="liga-velo" style={{ background: `linear-gradient(160deg, ${l.colores[0]}cc, ${l.colores[1]}e6)` }} />
+                <b>{l.nombre}</b>
+                <span>{l.pais}</span>
+              </Link>
+            ))}
+          </div>
+        </section>
 
-      <div className="wrap" style={{ marginTop: 56 }}>
-        <div className="section-head" style={{ marginTop: 0 }}>
-          <h2>Cambios y garantía</h2>
-        </div>
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(3,1fr)", gap: 16 }}>
-          <div className="card" style={{ padding: 18 }}>
-            <b>Si llega con defecto, se cambia</b>
-            <p style={{ color: "var(--ink-mute)", fontSize: ".82rem", marginTop: 6 }}>
-              Nosotros asumimos el envío de recogida y reenvío.
-            </p>
+        {novedades.length > 0 && (
+          <section>
+            <div className="section-head">
+              <div>
+                <h2>Novedades</h2>
+                <p className="section-note">Las camisetas de la nueva temporada, personalizables con tu nombre y dorsal.</p>
+              </div>
+            </div>
+            <div className="product-grid">
+              {novedades.map((p) => (
+                <ProductCard key={p.id} p={p} />
+              ))}
+            </div>
+          </section>
+        )}
+
+        <section className="confianza">
+          <div className="card">
+            <span aria-hidden="true">🚚</span>
+            <b>Entrega en 1-2 días hábiles</b>
+            <p>En Bogotá. Envíos a toda Colombia.</p>
           </div>
-          <div className="card" style={{ padding: 18 }}>
-            <b>Pago 100% seguro</b>
-            <p style={{ color: "var(--ink-mute)", fontSize: ".82rem", marginTop: 6 }}>
-              Pasarela Wompi: tarjeta, PSE o contra entrega.
-            </p>
-          </div>
-          <div className="card" style={{ padding: 18 }}>
+          <div className="card">
+            <span aria-hidden="true">🎽</span>
             <b>Personalización incluida</b>
-            <p style={{ color: "var(--ink-mute)", fontSize: ".82rem", marginTop: 6 }}>
-              Parche de liga y estampado de dorsal en el precio.
-            </p>
+            <p>Parche de liga, nombre y dorsal en el precio.</p>
           </div>
-        </div>
+          <div className="card">
+            <span aria-hidden="true">🔒</span>
+            <b>Pago 100 % seguro</b>
+            <p>Tarjeta, PSE, Nequi o contra entrega.</p>
+          </div>
+          <div className="card">
+            <span aria-hidden="true">🔄</span>
+            <b>Cambios fáciles</b>
+            <p>Si llega con defecto, asumimos el envío.</p>
+          </div>
+        </section>
       </div>
     </>
   );

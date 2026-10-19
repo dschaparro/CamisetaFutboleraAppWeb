@@ -8,15 +8,22 @@
     "start": "node --use-system-ca ./node_modules/next/dist/bin/next start",
     "lint": "eslint",
     "test": "node --experimental-strip-types --import ./scripts/register-alias.mjs --test \"tests/**/*.test.mts\"",
-    "hash-password": "node --experimental-strip-types --import ./scripts/register-alias.mjs scripts/hash-password.mts"
+    "hash-password": "node --experimental-strip-types --import ./scripts/register-alias.mjs scripts/hash-password.mts",
+    "db:migrar": "node --env-file=.env.local --experimental-strip-types --import ./scripts/register-alias.mjs scripts/db-migrar.mts",
+    "db:sembrar": "node --env-file=.env.local --experimental-strip-types --import ./scripts/register-alias.mjs scripts/db-sembrar.mts",
+    "db:crear-admin": "node --env-file=.env.local --experimental-strip-types --import ./scripts/register-alias.mjs scripts/db-crear-admin.mts",
+    "db:sql": "node --env-file=.env.local --experimental-strip-types scripts/db-sql.mts"
   },
   "dependencies": {
+    "@anthropic-ai/sdk": "^0.128.0",
     "next": "16.3.2",
+    "pg": "^8.23.1",
     "react": "19.2.8",
     "react-dom": "19.2.8"
   },
   "devDependencies": {
     "@types/node": "^20",
+    "@types/pg": "^8.23.1",
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "eslint": "^9",

@@ -1,8 +1,11 @@
 import { createHmac, timingSafeEqual } from "node:crypto";
-import type { Rol } from "@/modules/identidad/domain/types";
+import { esRol, type Rol } from "@/modules/identidad/domain/types";
 
 export const JWT_ISSUER = "camisetafutbolera";
+/** Personal (panel). */
 export const JWT_AUDIENCE = "panel";
+/** Clientes de la tienda. Otro aud: un token de cliente nunca sirve en el panel, ni al revés. */
+export const JWT_AUDIENCE_CLIENTE = "tienda";
 export const JWT_ALG = "HS256";
 
 export type SessionClaims = {
@@ -10,6 +13,12 @@ export type SessionClaims = {
   email: string;
   nombre: string;
   rol: Rol;
+};
+
+export type ClienteClaims = {
+  sub: string;
+  email: string;
+  nombre: string;
 };
 
 function toBase64Url(input: Buffer | string): string {
@@ -32,34 +41,24 @@ function parseExpiresIn(expiresIn: string): number {
   return Number(match[1]) * 3600;
 }
 
-export async function signSessionToken(
-  claims: SessionClaims,
-  secret: string,
-  expiresIn = "8h",
-): Promise<string> {
+function firmar(datos: Record<string, unknown>, audience: string, secret: string, expiresIn: string): string {
   const now = Math.floor(Date.now() / 1000);
   const header = toBase64Url(JSON.stringify({ alg: JWT_ALG, typ: "JWT" }));
   const payload = toBase64Url(
     JSON.stringify({
-      sub: claims.sub,
-      email: claims.email,
-      nombre: claims.nombre,
-      rol: claims.rol,
+      ...datos,
       iat: now,
       exp: now + parseExpiresIn(expiresIn),
       iss: JWT_ISSUER,
-      aud: JWT_AUDIENCE,
+      aud: audience,
     }),
   );
   const body = `${header}.${payload}`;
-  const signature = toBase64Url(hmac(secret, body));
-  return `${body}.${signature}`;
+  return `${body}.${toBase64Url(hmac(secret, body))}`;
 }
 
-export async function verifySessionToken(
-  token: string,
-  secret: string,
-): Promise<SessionClaims | null> {
+/** Verifica firma, algoritmo, vencimiento, emisor y audiencia. Devuelve el payload o null. */
+function verificar(token: string, audience: string, secret: string): Record<string, unknown> | null {
   const parts = token.split(".");
   if (parts.length !== 3) return null;
   const [headerB64, payloadB64, sigB64] = parts;
@@ -82,19 +81,41 @@ export async function verifySessionToken(
     const payload = JSON.parse(Buffer.from(payloadB64, "base64url").toString("utf8")) as Record<string, unknown>;
     const now = Math.floor(Date.now() / 1000);
     if (typeof payload.exp !== "number" || payload.exp <= now) return null;
-    if (payload.iss !== JWT_ISSUER || payload.aud !== JWT_AUDIENCE) return null;
-
-    const { sub, email, nombre, rol } = payload;
-    if (
-      typeof sub !== "string" ||
-      typeof email !== "string" ||
-      typeof nombre !== "string" ||
-      (rol !== "Administrador" && rol !== "Vendedor")
-    ) {
-      return null;
-    }
-    return { sub, email, nombre, rol };
+    if (payload.iss !== JWT_ISSUER || payload.aud !== audience) return null;
+    return payload;
   } catch {
     return null;
   }
+}
+
+export async function signSessionToken(claims: SessionClaims, secret: string, expiresIn = "8h"): Promise<string> {
+  return firmar(
+    { sub: claims.sub, email: claims.email, nombre: claims.nombre, rol: claims.rol },
+    JWT_AUDIENCE,
+    secret,
+    expiresIn,
+  );
+}
+
+export async function verifySessionToken(token: string, secret: string): Promise<SessionClaims | null> {
+  const payload = verificar(token, JWT_AUDIENCE, secret);
+  if (!payload) return null;
+  const { sub, email, nombre, rol } = payload;
+  if (typeof sub !== "string" || typeof email !== "string" || typeof nombre !== "string" || !esRol(rol)) {
+    return null;
+  }
+  return { sub, email, nombre, rol };
+}
+
+/** Sesión de cliente: más larga que la del personal (30 días). */
+export async function signClienteToken(claims: ClienteClaims, secret: string, expiresIn = "720h"): Promise<string> {
+  return firmar({ sub: claims.sub, email: claims.email, nombre: claims.nombre }, JWT_AUDIENCE_CLIENTE, secret, expiresIn);
+}
+
+export async function verifyClienteToken(token: string, secret: string): Promise<ClienteClaims | null> {
+  const payload = verificar(token, JWT_AUDIENCE_CLIENTE, secret);
+  if (!payload) return null;
+  const { sub, email, nombre } = payload;
+  if (typeof sub !== "string" || typeof email !== "string" || typeof nombre !== "string") return null;
+  return { sub, email, nombre };
 }

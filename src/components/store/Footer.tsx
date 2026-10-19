@@ -29,15 +29,15 @@ export default function Footer() {
         </div>
         <div>
           <h4>Contáctanos</h4>
-          <a href="https://wa.me/573118176454" target="_blank" rel="noopener noreferrer">
-            WhatsApp 311 817 6454
+          <a href="https://wa.me/573223176175" target="_blank" rel="noopener noreferrer">
+            WhatsApp 322 317 6175
           </a>
           <a href="#">Instagram @camiseta.futbolera</a>
           <a href="#">TikTok @camisetafutbolera</a>
         </div>
       </div>
       <div className="footer-bottom">
-        © 2027 Camiseta Futbolera. Todos los derechos reservados. —{" "}
+        © 2027 Camiseta Futbolera. Todos los derechos reservados. Fotos de Wikimedia Commons (CC BY / CC BY-SA, créditos en cada imagen). Los escudos son marcas de sus clubes. —{" "}
         <Link href="/panel/login" style={{ color: "#8FA1C4" }}>
           Ir al panel administrativo →
         </Link>
