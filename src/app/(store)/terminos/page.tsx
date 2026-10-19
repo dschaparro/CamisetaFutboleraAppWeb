@@ -36,7 +36,7 @@ export default function TerminosPage() {
       <div className="wa-cta">
         <h3>¿Necesitas hacer un cambio o devolución?</h3>
         <p>Escríbele directo a un asesor por WhatsApp — con un clic te llevamos al chat.</p>
-        <a className="btn btn-gold" href="https://wa.me/573118176454" target="_blank" rel="noopener noreferrer">
+        <a className="btn btn-gold" href="https://wa.me/573223176175" target="_blank" rel="noopener noreferrer">
           Contactar asesor por WhatsApp
         </a>
       </div>

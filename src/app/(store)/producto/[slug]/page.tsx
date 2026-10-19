@@ -2,19 +2,54 @@
 
 import { use, useState } from "react";
 import Link from "next/link";
-import { PRODUCTS, crestGradient } from "@/data/products";
-import { money } from "@/lib/money";
-import { useCart } from "@/context/CartContext";
 import { useRouter } from "next/navigation";
+import { EscudoImg, fondoEscudo, ImagenProducto } from "@/components/store/ProductCard";
+import { useCatalogo } from "@/components/store/useCatalogo";
+import { useCart } from "@/context/CartContext";
+import { money } from "@/lib/money";
+import Imagen, { Credito } from "@/components/store/Imagen";
+import type { ProductoPublico } from "@/modules/tienda/domain/types";
 
 const SIZES = ["S", "M", "L", "XL"];
 
 export default function ProductPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = use(params);
-  const product = PRODUCTS.find((p) => p.id === slug) ?? PRODUCTS[0];
+  const { catalogo } = useCatalogo();
+
+  if (!catalogo) {
+    return (
+      <div className="wrap" style={{ padding: "60px 0", textAlign: "center" }}>
+        <span className="spinner" style={{ display: "inline-block" }} /> Cargando camiseta…
+      </div>
+    );
+  }
+  const product = catalogo.productos.find((p) => p.id === slug);
+  if (!product) {
+    return (
+      <div className="wrap" style={{ padding: "60px 0", textAlign: "center" }}>
+        <h2>Esta camiseta ya no está disponible</h2>
+        <Link className="btn btn-gold" href="/catalogo" style={{ marginTop: 16 }}>
+          Ver el catálogo
+        </Link>
+      </div>
+    );
+  }
+  return <Detalle key={product.id} product={product} todos={catalogo.productos} ligaNombre={catalogo.ligas.find((l) => l.id === product.ligaId)?.nombre ?? "Catálogo"} />;
+}
+
+function Detalle({ product, todos, ligaNombre }: { product: ProductoPublico; todos: ProductoPublico[]; ligaNombre: string }) {
   const { addItem } = useCart();
   const router = useRouter();
+  const agotada = product.disponibilidad === "agotado";
+  // Si está agotada se ofrecen alternativas: primero de la misma liga, luego de precio cercano.
+  const alternativas = agotada
+    ? todos
+        .filter((p) => p.id !== product.id && p.disponibilidad !== "agotado")
+        .sort((a, b) => Number(b.ligaId === product.ligaId) - Number(a.ligaId === product.ligaId) || Math.abs(a.precioFinal - product.precioFinal) - Math.abs(b.precioFinal - product.precioFinal))
+        .slice(0, 3)
+    : [];
 
+  const [foto, setFoto] = useState(0);
   const [size, setSize] = useState("M");
   const [sleeve, setSleeve] = useState<"Corta" | "Larga">("Corta");
   const [patch, setPatch] = useState(false);
@@ -32,44 +67,92 @@ export default function ProductPage({ params }: { params: Promise<{ slug: string
 
   function handleAdd() {
     addItem({
+      slug: product.id,
       club: product.club,
-      name: product.name,
-      initials: product.initials,
-      cat: product.cat,
+      name: product.nombre,
+      initials: product.iniciales,
+      cat: product.categoria,
       size,
       sleeve,
       custom: buildCustom(),
       qty,
-      price: product.price,
+      price: product.precioFinal,
     });
   }
 
   return (
     <div className="wrap">
       <div className="crumbs">
-        <Link href="/">Inicio</Link> &gt; <Link href="/">Catálogo</Link> &gt;{" "}
-        <Link href="/">Clubes europeos</Link> &gt; {product.club} — {product.name.replace("Camiseta ", "")}
+        <Link href="/">Inicio</Link> &gt; <Link href="/catalogo">Catálogo</Link> &gt;{" "}
+        <Link href={`/catalogo/${product.ligaId}`}>{ligaNombre}</Link> &gt; {product.nombre.replace("Camiseta ", "")}
       </div>
       <div className="product-detail">
         <div className="detail-media">
-          <div className="crest" style={{ background: crestGradient(product.cat) }}>
-            {product.initials}
-            {addName && numText && <span className="jersey-num">{numText}</span>}
-          </div>
+          {product.imagenes.length > 0 ? (
+            <div className="galeria">
+              <Imagen className="galeria-principal" refImagen={product.imagenes[foto] ?? product.imagenes[0]} alt={product.nombre} sizes="(max-width: 900px) 100vw, 560px" posicion={product.posicionImagen} prioridad />
+              <Credito refImagen={product.imagenes[foto] ?? product.imagenes[0]} className="galeria-credito" />
+              {product.imagenes.length > 1 && (
+                <div className="galeria-miniaturas">
+                  {product.imagenes.map((id, i) => (
+                    <button key={id} className={i === foto ? "activa" : ""} onClick={() => setFoto(i)} aria-label={`Ver foto ${i + 1}`}>
+                      <Imagen refImagen={id} alt="" sizes="64px" posicion={product.posicionImagen} />
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+          ) : product.escudo ? (
+            <div className="crest crest-escudo" style={{ background: fondoEscudo(product.categoria) }}>
+              <EscudoImg src={product.escudo} alt={`Escudo de ${product.club}`} />
+              {addName && numText && <span className="jersey-num">{numText}</span>}
+            </div>
+          ) : (
+            <div className="crest" style={{ background: fondoEscudo(product.categoria) }}>
+              {product.iniciales}
+              {addName && numText && <span className="jersey-num">{numText}</span>}
+            </div>
+          )}
         </div>
         <div className="detail-info">
           <div className="club">{product.club.toUpperCase()}</div>
-          <h1>{product.name}</h1>
-          <div className="price tabular">{money(product.price)} COP</div>
-          <div className="avail">
-            Disponible — se confirma con el proveedor al recibir tu pedido · entrega estimada 1-2
-            días hábiles en Bogotá
-          </div>
+          <h1>{product.nombre}</h1>
+          {product.promocion ? (
+            <div>
+              <span className="price-antes tabular">{money(product.precio)} COP</span>
+              <div className="price tabular price-oferta">
+                {money(product.precioFinal)} COP <span className="pill pill-danger">−{product.promocion.porcentaje}% · {product.promocion.etiqueta}</span>
+              </div>
+            </div>
+          ) : (
+            <div className="price tabular">{money(product.precio)} COP</div>
+          )}
+          {product.descripcion && <p className="detalle-descripcion">{product.descripcion}</p>}
+          {agotada ? (
+            <div className="agotada">
+              <b>Agotada por ahora</b>
+              <span>Te pueden gustar estas, disponibles para entrega en 1-2 días hábiles:</span>
+              <div className="agotada-alternativas">
+                {alternativas.map((a) => (
+                  <Link key={a.id} href={`/producto/${a.id}`}>
+                    <ImagenProducto p={a} className="crest-mini" />
+                    <span>
+                      {a.nombre.replace(/^Camiseta /, "")}
+                      <small>{money(a.precioFinal)}</small>
+                    </span>
+                  </Link>
+                ))}
+              </div>
+            </div>
+          ) : (
+            <div className="avail">
+              {product.disponibilidad === "pocas" ? "¡Quedan pocas unidades! " : "Disponible — "}entrega estimada 1-2 días hábiles en Bogotá
+            </div>
+          )}
 
           <div className="option-group">
             <div className="label-row">
               <label className="lbl">Talla</label>
-              <a className="link" href="#">Guía de tallas</a>
             </div>
             <div className="opt-row">
               {SIZES.map((s) => (
@@ -100,14 +183,14 @@ export default function ProductPage({ params }: { params: Promise<{ slug: string
                     <b>Agregar parche de liga</b>
                     <span>Ej. LaLiga, Champions League — estampado incluido en el precio</span>
                   </div>
-                  <button className={`switch${patch ? " on" : ""}`} onClick={() => setPatch((v) => !v)} />
+                  <button className={`switch${patch ? " on" : ""}`} onClick={() => setPatch((v) => !v)} aria-label="Agregar parche de liga" />
                 </div>
                 <div className="custom-row">
                   <div className="txt">
                     <b>Agregar nombre y dorsal</b>
                     <span>Estampado en la espalda, se aplica antes del envío</span>
                   </div>
-                  <button className={`switch${addName ? " on" : ""}`} onClick={() => setAddName((v) => !v)} />
+                  <button className={`switch${addName ? " on" : ""}`} onClick={() => setAddName((v) => !v)} aria-label="Agregar nombre y dorsal" />
                 </div>
                 {addName && (
                   <div className="custom-fields">
@@ -129,11 +212,12 @@ export default function ProductPage({ params }: { params: Promise<{ slug: string
             <div className="qty-stepper">
               <button onClick={() => setQty((q) => Math.max(1, q - 1))}>−</button>
               <span>{qty}</span>
-              <button onClick={() => setQty((q) => q + 1)}>+</button>
+              <button onClick={() => setQty((q) => Math.min(10, q + 1))}>+</button>
             </div>
-            <button className="btn btn-outline btn-block" onClick={handleAdd}>Agregar al carrito</button>
+            <button className="btn btn-outline btn-block" onClick={handleAdd} disabled={agotada}>Agregar al carrito</button>
             <button
               className="btn btn-gold btn-block"
+              disabled={agotada}
               onClick={() => {
                 handleAdd();
                 router.push("/checkout");
