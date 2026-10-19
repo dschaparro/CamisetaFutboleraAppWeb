@@ -54,7 +54,7 @@ export default function Header() {
             <Link href="/" className={pathname === "/" ? "current" : ""}>Inicio</Link>
             <Link href="/catalogo" className={pathname.startsWith("/catalogo") ? "current" : ""}>Catálogo</Link>
             <Link href="/catalogo/todas?ofertas=1">Ofertas</Link>
-            <Link href={`/producto/${"RM-27T"}`}>Personalizar</Link>
+            <Link href="/personalizar" className={pathname.startsWith("/personalizar") ? "current" : ""}>Personalizar</Link>
             <Link href="/cuenta" className={pathname.startsWith("/cuenta") ? "current" : ""}>Mis pedidos</Link>
             <Link href="/terminos">Contacto</Link>
           </nav>
