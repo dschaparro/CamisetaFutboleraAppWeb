@@ -1,8 +1,15 @@
 import {
+  CARRITO_MAX_CANTIDAD_DEFAULT,
+  CARRITO_MAX_CANTIDAD_MAX,
+  CARRITO_MAX_CANTIDAD_MIN,
+  CARRITO_MAX_PRODUCTOS_DEFAULT,
+  CARRITO_MAX_PRODUCTOS_MAX,
+  CARRITO_MAX_PRODUCTOS_MIN,
   CATEGORIAS,
   ETIQUETAS,
   POSICIONES,
   STOCK_BAJO,
+  type AjustesTienda,
   type Banner,
   type Cupon,
   type Liga,
@@ -324,4 +331,26 @@ export function vistaPublica(p: Producto, promociones: Promocion[], ahora = new 
 
 export function bannersVigentes(banners: Banner[], ahora = new Date()): Banner[] {
   return banners.filter((b) => b.activo && vigente(b.desde, b.hasta, ahora)).sort((a, b) => a.orden - b.orden);
+}
+
+export function ajustesPorDefecto(): AjustesTienda {
+  return {
+    carritoMaxProductos: CARRITO_MAX_PRODUCTOS_DEFAULT,
+    carritoMaxCantidad: CARRITO_MAX_CANTIDAD_DEFAULT,
+  };
+}
+
+export function validarAjustes(raw: unknown): AjustesTienda {
+  if (!esObjeto(raw)) throw new DatosInvalidosError({ cuerpo: "Datos inválidos" });
+  const errores: Record<string, string> = {};
+  const nProd = Number(raw.carritoMaxProductos);
+  if (!Number.isInteger(nProd) || nProd < CARRITO_MAX_PRODUCTOS_MIN || nProd > CARRITO_MAX_PRODUCTOS_MAX) {
+    errores.carritoMaxProductos = `Indica un número entre ${CARRITO_MAX_PRODUCTOS_MIN} y ${CARRITO_MAX_PRODUCTOS_MAX}`;
+  }
+  const nCant = Number(raw.carritoMaxCantidad);
+  if (!Number.isInteger(nCant) || nCant < CARRITO_MAX_CANTIDAD_MIN || nCant > CARRITO_MAX_CANTIDAD_MAX) {
+    errores.carritoMaxCantidad = `Indica un número entre ${CARRITO_MAX_CANTIDAD_MIN} y ${CARRITO_MAX_CANTIDAD_MAX}`;
+  }
+  if (Object.keys(errores).length) throw new DatosInvalidosError(errores);
+  return { carritoMaxProductos: nProd, carritoMaxCantidad: nCant };
 }

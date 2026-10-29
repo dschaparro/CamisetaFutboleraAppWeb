@@ -111,6 +111,10 @@
   flex: 1;
   padding-block: 13px;
   font-size: 0.95rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
 }
 .subtitulo {
   color: var(--ink-mute);
@@ -261,6 +265,9 @@
   font-weight: 700;
   font-size: 0.82rem;
   white-space: nowrap;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
 }
 .botonClaro:hover {
   background: rgba(255, 255, 255, 0.1);
@@ -269,7 +276,9 @@
   padding: 28px 30px;
 }
 .resumenAlertas {
-  display: inline-block;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
   background: var(--warn-bg);
   color: var(--warn);
   font-weight: 800;

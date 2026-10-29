@@ -294,6 +294,11 @@
   text-align: center;
   font-size: 0.82rem;
   color: var(--ink-mute);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  cursor: pointer;
 }
 
 /* Vista previa de banner */

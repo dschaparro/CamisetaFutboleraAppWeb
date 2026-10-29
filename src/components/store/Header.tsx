@@ -36,22 +36,32 @@ function IconoCarrito() {
 }
 
 export default function Header() {
-  const { count } = useCart();
+  const { count, vaciarLocal } = useCart();
   const pathname = usePathname();
   const router = useRouter();
   const [cliente, setCliente] = useState<{ nombre: string } | null>(null);
   const [menu, setMenu] = useState(false);
   const [navAbierta, setNavAbierta] = useState(false);
   const [buscaAbierta, setBuscaAbierta] = useState(false);
+  const [rutaMenus, setRutaMenus] = useState(pathname);
   const navId = useId();
   const buscaId = useId();
   const primerLink = useRef<HTMLAnchorElement>(null);
   const buscaInput = useRef<HTMLInputElement>(null);
 
+  // Cierra menús al navegar (ajuste de estado durante render; evita setState en effect).
+  if (rutaMenus !== pathname) {
+    setRutaMenus(pathname);
+    setNavAbierta(false);
+    setBuscaAbierta(false);
+    setMenu(false);
+  }
+
   async function salir() {
     setMenu(false);
     setNavAbierta(false);
     await fetch("/api/cuenta/salir", { method: "POST" });
+    vaciarLocal();
     setCliente(null);
     router.push("/");
     router.refresh();
@@ -68,11 +78,6 @@ export default function Header() {
     return () => {
       cancelado = true;
     };
-  }, [pathname]);
-
-  useEffect(() => {
-    setNavAbierta(false);
-    setBuscaAbierta(false);
   }, [pathname]);
 
   useEffect(() => {
@@ -190,7 +195,12 @@ export default function Header() {
                       ["pagos", "Formas de pago"],
                       ["seguridad", "Cambiar contraseña"],
                     ].map(([id, label]) => (
-                      <Link key={id} role="menuitem" href={`/cuenta#${id}`} onClick={() => setMenu(false)}>
+                      <Link
+                        key={id}
+                        role="menuitem"
+                        href={`/cuenta?seccion=${id}`}
+                        onClick={() => setMenu(false)}
+                      >
                         {label}
                       </Link>
                     ))}

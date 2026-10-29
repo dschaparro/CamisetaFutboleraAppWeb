@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { IconoImagen } from "@/components/icons/pago";
 import { esUrlExterna, POSICIONES, urlImagen, type Banner } from "@/modules/tienda/domain/types";
 import { aLocal, api, Cajon, Campo, Check, deLocal, estadoVigencia, fechaCorta, useEdicion } from "./comun";
 import s from "./tienda.module.css";
@@ -61,7 +62,13 @@ function ImagenBanner({ banner, onCambio, onMensaje, onImagen }: { banner: Banne
         </div>
       )}
       <label className={s.subir}>
-        {subiendo ? "Subiendo…" : "🖼 Subir imagen (JPG, PNG o WEBP, máx. 2 MB; ideal 1920×720)"}
+        {subiendo ? (
+          "Subiendo…"
+        ) : (
+          <>
+            <IconoImagen size={16} /> Subir imagen (JPG, PNG o WEBP, máx. 2 MB; ideal 1920×720)
+          </>
+        )}
         <input type="file" accept="image/jpeg,image/png,image/webp" hidden disabled={subiendo} onChange={(e) => subir(e.target.files?.[0])} />
       </label>
     </div>

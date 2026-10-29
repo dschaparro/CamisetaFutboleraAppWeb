@@ -9,7 +9,7 @@ Guía corta para demostrar el proyecto de grado. Fuente de arquitectura:
 |---|---|
 | Ventas / catálogo / checkout | `pedidos` + `tienda` |
 | Compras / inventario / lista | `operacion` |
-| Pagos | Puerto `Pasarela` en `pedidos` |
+| Pagos | Mercado Pago Checkout Pro (+ `Pasarela` simulada) en `pedidos` |
 | Identidad / roles / clientes | `identidad` |
 | Informes IA / chat tienda | `asistente` |
 
@@ -26,7 +26,8 @@ No revivir `catalogo` ni `ia`: el catálogo vive en `tienda`; la IA en `asistent
 
 - `finalizarVenta` — checkout web + stock + faltantes  
 - `registrarVentaManual` — venta del panel  
-- `procesarPagoPedido` — cobro vía `Pasarela`  
+- `procesarPagoPedido` — cobro simulado vía `Pasarela`  
+- `iniciarCheckoutMercadoPago` / `confirmarPagoPorIdMp` — Checkout Pro + webhook  
 - `responderChat` / `prepararStreamChat` — asistente de tienda  
 - `generarInforme` — informe del panel con fuentes de `operacion`
 
@@ -58,7 +59,8 @@ Flujos sugeridos en defensa:
 
 Scaffolds y variables: [`ops-producto.md`](ops-producto.md).
 
-- [ ] Completar API/webhook Wompi (`pasarela-wompi` + `WOMPI_USE_REAL`)  
+- [x] Mercado Pago Checkout Pro (preferencia + webhook + sync retorno)  
+- [ ] Credenciales de prueba MP + `APP_URL` https en el entorno de demo  
 - [ ] Cablear Supabase Storage (`storage-supabase` + bucket)  
 - [ ] Adaptador de correo real (`NotificadorPedido`)  
 - [ ] Despliegue Vercel con secretos de producción  

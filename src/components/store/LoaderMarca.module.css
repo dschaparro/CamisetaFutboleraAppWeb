@@ -1,0 +1,136 @@
+.marca {
+  position: relative;
+  width: 52px;
+  height: 52px;
+  flex: none;
+}
+
+.anillo {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  border: 2.5px solid color-mix(in srgb, var(--gold) 28%, var(--border));
+  border-top-color: var(--gold);
+  animation: loader-giro 0.85s linear infinite;
+}
+
+.logo {
+  position: absolute;
+  inset: 7px;
+  border-radius: 50%;
+  background: var(--blue);
+  border: 2px solid var(--gold);
+  color: #fff;
+  display: grid;
+  place-items: center;
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 0.78rem;
+  letter-spacing: 0.02em;
+}
+
+.texto {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+}
+
+.texto b {
+  font-size: 0.95rem;
+  font-weight: 800;
+  color: var(--ink);
+  line-height: 1.25;
+}
+
+.texto span {
+  font-size: 0.8rem;
+  color: var(--ink-mute);
+  line-height: 1.4;
+}
+
+/* Página completa: centrado en el viewport útil */
+.pagina {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 18px;
+  text-align: center;
+  min-height: min(52vh, 420px);
+  padding: clamp(32px, 6vh, 64px) 16px;
+  animation: loader-entra 0.35s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+.pagina .texto {
+  justify-items: center;
+}
+
+.pagina .marca {
+  width: 64px;
+  height: 64px;
+}
+
+.pagina .logo {
+  inset: 9px;
+  font-size: 0.9rem;
+}
+
+/* Bloque horizontal (cuenta, etc.) */
+.bloque {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  text-align: left;
+  animation: loader-entra 0.35s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+/* Inline en botones / filas */
+.inline {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  vertical-align: middle;
+}
+
+.inline .marca {
+  width: 18px;
+  height: 18px;
+}
+
+.inline .anillo {
+  border-width: 2px;
+}
+
+.inline .logo {
+  display: none;
+}
+
+.inline .texto b {
+  font-size: 0.86rem;
+  font-weight: 700;
+  color: inherit;
+}
+
+.inline .texto span {
+  display: none;
+}
+
+@keyframes loader-giro {
+  to { transform: rotate(360deg); }
+}
+
+@keyframes loader-entra {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: none; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pagina,
+  .bloque {
+    animation: none;
+  }
+  .anillo {
+    animation: none;
+    border-color: var(--gold);
+  }
+}

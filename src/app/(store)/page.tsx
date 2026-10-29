@@ -5,6 +5,7 @@ import BannerCarrusel from "@/components/store/BannerCarrusel";
 import Imagen from "@/components/store/Imagen";
 import ProductCard, { TarjetasCargando } from "@/components/store/ProductCard";
 import { useCatalogo } from "@/components/store/useCatalogo";
+import { IconoCamion, IconoCamiseta, IconoCandado, IconoCheck } from "@/components/icons/pago";
 
 export default function HomePage() {
   const { catalogo, error } = useCatalogo();
@@ -98,28 +99,28 @@ export default function HomePage() {
         <section className="confianza" aria-label="Por qué comprar aquí">
           <div className="card confianza-card">
             <span className="confianza-ico" aria-hidden="true">
-              1–2
+              <IconoCamion size={22} />
             </span>
             <b>Entrega ágil</b>
             <p>1–2 días hábiles en Bogotá. Envíos a toda Colombia.</p>
           </div>
           <div className="card confianza-card">
             <span className="confianza-ico" aria-hidden="true">
-              CF
+              <IconoCamiseta size={22} />
             </span>
             <b>Personalización</b>
             <p>Parche de liga, nombre y dorsal incluidos en el precio.</p>
           </div>
           <div className="card confianza-card">
             <span className="confianza-ico" aria-hidden="true">
-              ✓
+              <IconoCandado size={22} />
             </span>
             <b>Pago seguro</b>
             <p>Tarjeta, PSE, Nequi o contra entrega.</p>
           </div>
           <div className="card confianza-card">
             <span className="confianza-ico" aria-hidden="true">
-              ↔
+              <IconoCheck size={22} />
             </span>
             <b>Cambios fáciles</b>
             <p>Si llega con defecto, asumimos el envío de devolución.</p>

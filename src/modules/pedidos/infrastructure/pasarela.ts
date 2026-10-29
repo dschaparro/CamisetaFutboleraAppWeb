@@ -1,14 +1,14 @@
 import type { Pasarela } from "@/modules/pedidos/application/puertos";
+import { modoPasarela, type ModoPasarela } from "@/modules/pedidos/infrastructure/mercadopago-config";
 import { pasarelaSimulada } from "@/modules/pedidos/infrastructure/pasarela-simulada";
-import { pasarelaWompi, wompiConfigurado } from "@/modules/pedidos/infrastructure/pasarela-wompi";
+
+export { modoPasarela };
+export type { ModoPasarela };
 
 /**
- * Composition: elige Wompi solo si hay claves y WOMPI_USE_REAL=true;
- * si no, la pasarela simulada (desarrollo y demos).
+ * Cobro embebido (tarjeta/PSE simulados) solo cuando no hay Mercado Pago configurado.
+ * Con MERCADOPAGO_ACCESS_TOKEN + APP_URL https se usa Checkout Pro (redirección).
  */
 export function pasarelaActiva(): Pasarela {
-  if (process.env.WOMPI_USE_REAL === "true" && wompiConfigurado()) {
-    return pasarelaWompi;
-  }
   return pasarelaSimulada;
 }

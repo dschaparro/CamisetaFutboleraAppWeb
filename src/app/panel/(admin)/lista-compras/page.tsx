@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { IconoBuscar } from "@/components/icons/pago";
 
 type Estado = "Pendiente" | "Conseguido" | "No conseguido";
 type Item = { id: number; producto: string; variante: string; personalizacion: string; cantidad: number; origen: string; estado: Estado; nota: string | null };
@@ -73,7 +74,7 @@ export default function ListaComprasPage() {
         ))}
       </div>
       <div className="toolbar">
-        <div className="search">🔎 <input placeholder="Buscar por club, talla o venta..." value={busqueda} onChange={(e) => setBusqueda(e.target.value)} aria-label="Buscar en la lista de compras" /></div>
+        <div className="search"><IconoBuscar size={16} /><input placeholder="Buscar por club, talla o venta..." value={busqueda} onChange={(e) => setBusqueda(e.target.value)} aria-label="Buscar en la lista de compras" /></div>
       </div>
       <div className="card overflow-x">
         <table>

@@ -1,6 +1,19 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
+import {
+  IconoAlerta,
+  IconoCaja,
+  IconoCamiseta,
+  IconoCheck,
+  IconoCerrar,
+  IconoCopiar,
+  IconoDescargar,
+  IconoDestello,
+  IconoDinero,
+  IconoGrafico,
+  IconoPedido,
+} from "@/components/icons/pago";
 import s from "./informes.module.css";
 
 type Kpi = { etiqueta: string; valor: string };
@@ -17,13 +30,13 @@ type InformeGuardado = Informe & { solicitud: string };
 const MAX_SOLICITUD = 1000;
 const MAX_HISTORIAL = 5;
 
-const SUGERENCIAS = [
-  { icono: "📊", texto: "Ventas y margen del último mes" },
-  { icono: "👕", texto: "Productos más vendidos por club" },
-  { icono: "📦", texto: "Estado de la Lista de Compras" },
-  { icono: "💰", texto: "Comparativo de márgenes web vs. venta manual" },
-  { icono: "⚠️", texto: "Productos agotados o con poco stock" },
-  { icono: "🧾", texto: "Pedidos pendientes de pago o de envío" },
+const SUGERENCIAS: { icono: ReactNode; texto: string }[] = [
+  { icono: <IconoGrafico size={14} />, texto: "Ventas y margen del último mes" },
+  { icono: <IconoCamiseta size={14} />, texto: "Productos más vendidos por club" },
+  { icono: <IconoCaja size={14} />, texto: "Estado de la Lista de Compras" },
+  { icono: <IconoDinero size={14} />, texto: "Comparativo de márgenes web vs. venta manual" },
+  { icono: <IconoAlerta size={14} />, texto: "Productos agotados o con poco stock" },
+  { icono: <IconoPedido size={14} />, texto: "Pedidos pendientes de pago o de envío" },
 ];
 
 // Se van mostrando mientras la IA trabaja, para que la espera no parezca congelada.
@@ -48,7 +61,7 @@ function haceCuanto(iso: string, ahora: number): string {
 function informeComoTexto(inf: Informe): string {
   const kpis = inf.kpis.map((k) => `• ${k.etiqueta}: ${k.valor}`).join("\n");
   const secciones = inf.secciones
-    .map((sec) => `${sec.alerta ? "⚠ " : ""}${sec.titulo}\n${sec.texto}`)
+    .map((sec) => `${sec.alerta ? "[Atención] " : ""}${sec.titulo}\n${sec.texto}`)
     .join("\n\n");
   return `${inf.titulo}\n\n${kpis}\n\n${secciones}`;
 }
@@ -230,7 +243,9 @@ export default function InformesIaPage() {
                   <span className="spinner" /> Generando…
                 </>
               ) : (
-                "✨ Generar informe"
+                <>
+                  <IconoDestello size={16} /> Generar informe
+                </>
               )}
             </button>
             {solicitud.length > 0 && !cargando && (
@@ -291,7 +306,7 @@ export default function InformesIaPage() {
                   Reintentar
                 </button>
                 <button className={s.cerrar} onClick={() => setError(null)} aria-label="Cerrar aviso">
-                  ✕
+                  <IconoCerrar size={14} />
                 </button>
               </div>
             </div>
@@ -303,7 +318,7 @@ export default function InformesIaPage() {
             ) : (
               <div className={s.vacio}>
                 <div className={s.vacioIcono} aria-hidden="true">
-                  ✨
+                  <IconoDestello size={36} />
                 </div>
                 <b>Tu informe aparecerá aquí</b>
                 <ol className={s.pasos}>
@@ -331,10 +346,18 @@ export default function InformesIaPage() {
                 </div>
                 <div className={s.headAcciones}>
                   <button className={s.botonClaro} onClick={copiar}>
-                    {copiado ? "✓ Copiado" : "⧉ Copiar"}
+                    {copiado ? (
+                      <>
+                        <IconoCheck size={14} /> Copiado
+                      </>
+                    ) : (
+                      <>
+                        <IconoCopiar size={14} /> Copiar
+                      </>
+                    )}
                   </button>
                   <button className={s.botonClaro} onClick={() => window.print()}>
-                    ⬇ Descargar PDF
+                    <IconoDescargar size={14} /> Descargar PDF
                   </button>
                 </div>
               </header>
@@ -342,7 +365,8 @@ export default function InformesIaPage() {
               <div className={s.body}>
                 {alertas > 0 && (
                   <div className={s.resumenAlertas}>
-                    ⚠ {alertas === 1 ? "1 punto requiere" : `${alertas} puntos requieren`} tu atención
+                    <IconoAlerta size={16} />{" "}
+                    {alertas === 1 ? "1 punto requiere" : `${alertas} puntos requieren`} tu atención
                   </div>
                 )}
 
@@ -362,7 +386,11 @@ export default function InformesIaPage() {
                       key={`${sec.titulo}-${i}`}
                     >
                       <h4>
-                        {sec.alerta && <span aria-hidden="true">⚠ </span>}
+                        {sec.alerta && (
+                          <span aria-hidden="true">
+                            <IconoAlerta size={14} />{" "}
+                          </span>
+                        )}
                         {sec.titulo}
                         {sec.alerta && <span className={s.srOnly}> (requiere atención)</span>}
                       </h4>
@@ -374,7 +402,7 @@ export default function InformesIaPage() {
 
               <footer className={s.pie}>
                 <span>
-                  🤖 Generado con la API de Claude a partir de los datos del sistema
+                  Generado con la API de Claude a partir de los datos del sistema
                   {informe.fuenteDatos === "ejemplo" ? " (datos de ejemplo por ahora)" : ""}. Revisa las
                   cifras antes de tomar decisiones.
                 </span>

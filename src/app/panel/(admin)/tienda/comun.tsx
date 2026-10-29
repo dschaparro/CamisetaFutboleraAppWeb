@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, type ReactNode } from "react";
+import { IconoCerrar } from "@/components/icons/pago";
 import s from "./tienda.module.css";
 
 export type Campos = Record<string, string | undefined>;
@@ -95,7 +96,7 @@ export function Cajon({
         <div className={s.cajonHead}>
           <h2>{titulo}</h2>
           <button className={s.cerrar} onClick={onCerrar} aria-label="Cerrar">
-            ✕
+            <IconoCerrar size={16} />
           </button>
         </div>
         <form

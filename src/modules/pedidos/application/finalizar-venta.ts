@@ -24,6 +24,7 @@ export async function finalizarVenta(
   codigoCupon: string,
   deps: FinalizarVentaDeps,
 ): Promise<Pedido> {
+  const ajustes = await deps.tienda.leerAjustes();
   let cuponId: string | null = null;
   const pedido = await crearPedido(raw, {
     repo: deps.pedidos,
@@ -31,6 +32,8 @@ export async function finalizarVenta(
     clienteId: deps.clienteId,
     ahora: deps.ahora,
     claveAcceso: deps.claveAcceso,
+    maxCantidad: ajustes.carritoMaxCantidad,
+    maxItems: ajustes.carritoMaxProductos,
     cupon: codigoCupon
       ? async (subtotal) => {
           const r = await validarCuponPara(deps.tienda, codigoCupon, subtotal, deps.ahora);

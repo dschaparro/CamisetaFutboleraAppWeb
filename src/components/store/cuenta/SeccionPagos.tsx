@@ -1,8 +1,9 @@
 "use client";
 
-import { useState, type FormEvent } from "react";
+import { useState, type FormEvent, type ReactNode } from "react";
 import s from "@/components/store/cuenta.module.css";
 import { Aviso, Campo, llamar, type Campos } from "@/components/store/cuenta/comun";
+import { IconoInfo, IconoTarjeta } from "@/components/icons/pago";
 import { MAX_TARJETAS, type PerfilCliente, type TarjetaGuardada } from "@/modules/identidad/domain/perfil-tipos";
 
 const VACIO = { numero: "", vencimiento: "", titular: "" };
@@ -15,7 +16,12 @@ function formatoVence(v: string) {
   return d.length > 2 ? `${d.slice(0, 2)}/${d.slice(2)}` : d;
 }
 
-const ICONO: Record<TarjetaGuardada["marca"], string> = { Visa: "VISA", Mastercard: "MC", "American Express": "AMEX", Tarjeta: "💳" };
+const ICONO: Record<TarjetaGuardada["marca"], ReactNode> = {
+  Visa: "VISA",
+  Mastercard: "MC",
+  "American Express": "AMEX",
+  Tarjeta: <IconoTarjeta size={16} />,
+};
 
 export default function SeccionPagos({ tarjetas, nombreCliente, onPerfil }: { tarjetas: TarjetaGuardada[]; nombreCliente: string; onPerfil: (p: PerfilCliente) => void }) {
   const [agregando, setAgregando] = useState(false);
@@ -58,9 +64,14 @@ export default function SeccionPagos({ tarjetas, nombreCliente, onPerfil }: { ta
           </button>
         )}
       </div>
-      <p className={s.meta}>
-        🧪 Modo prueba. Guardamos solo la marca y los últimos 4 dígitos: nunca el número completo ni el CVC. Al pagar con
-        una tarjeta guardada solo te pedimos el CVC.
+      <p className={s.meta} style={{ display: "flex", gap: 8, alignItems: "flex-start" }}>
+        <span aria-hidden="true" style={{ flex: "none", marginTop: 2 }}>
+          <IconoInfo size={16} />
+        </span>
+        <span>
+          Modo prueba. Guardamos solo la marca y los últimos 4 dígitos: nunca el número completo ni el CVC. Al pagar con
+          una tarjeta guardada solo te pedimos el CVC.
+        </span>
       </p>
       <Aviso aviso={aviso} />
 

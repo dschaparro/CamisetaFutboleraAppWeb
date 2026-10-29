@@ -1,7 +1,23 @@
 /**
  * Lo que se parametriza de la tienda desde el panel: productos, ligas, ofertas,
- * cupones y banners. Sin dependencias de servidor: lo usan también las páginas.
+ * cupones, banners y ajustes. Sin dependencias de servidor: lo usan también las páginas.
  */
+
+/** Límites editables de la tienda (panel → Ajustes). */
+export type AjustesTienda = {
+  /** Máximo de productos distintos (líneas) en el carrito. */
+  carritoMaxProductos: number;
+  /** Máximo de unidades por producto (línea). */
+  carritoMaxCantidad: number;
+};
+
+export const CARRITO_MAX_PRODUCTOS_DEFAULT = 20;
+export const CARRITO_MAX_PRODUCTOS_MIN = 1;
+export const CARRITO_MAX_PRODUCTOS_MAX = 50;
+
+export const CARRITO_MAX_CANTIDAD_DEFAULT = 5;
+export const CARRITO_MAX_CANTIDAD_MIN = 1;
+export const CARRITO_MAX_CANTIDAD_MAX = 20;
 
 export const CATEGORIAS = ["europeo", "colombiano", "seleccion"] as const;
 export type Categoria = (typeof CATEGORIAS)[number];

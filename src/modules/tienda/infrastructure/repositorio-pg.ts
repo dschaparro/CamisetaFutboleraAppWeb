@@ -1,6 +1,7 @@
 import type pg from "pg";
 import { query, transaccion } from "@/lib/db";
-import type { Banner, Cupon, Liga, Producto, Promocion } from "@/modules/tienda/domain/types";
+import { ajustesPorDefecto } from "@/modules/tienda/domain/reglas";
+import type { AjustesTienda, Banner, Cupon, Liga, Producto, Promocion } from "@/modules/tienda/domain/types";
 import type { Coleccion, DatosTienda, TiendaRepo } from "@/modules/tienda/infrastructure/repositorio";
 
 /** Tienda en PostgreSQL (Supabase). Misma forma que la simulación. */
@@ -166,5 +167,28 @@ export const tiendaPg: TiendaRepo = {
   },
   async borrarImagen(id) {
     await query("delete from public.imagenes where id = $1", [id]);
+  },
+
+  async leerAjustes() {
+    const filas = await query<{ carrito_max_productos: number; carrito_max_cantidad: number }>(
+      "select carrito_max_productos, carrito_max_cantidad from public.tienda_ajustes where id = 1",
+    );
+    if (!filas[0]) return ajustesPorDefecto();
+    return {
+      carritoMaxProductos: filas[0].carrito_max_productos,
+      carritoMaxCantidad: filas[0].carrito_max_cantidad,
+    };
+  },
+
+  async guardarAjustes(ajustes: AjustesTienda) {
+    await query(
+      `insert into public.tienda_ajustes (id, carrito_max_productos, carrito_max_cantidad, actualizado_en)
+       values (1, $1, $2, now())
+       on conflict (id) do update set
+         carrito_max_productos = excluded.carrito_max_productos,
+         carrito_max_cantidad = excluded.carrito_max_cantidad,
+         actualizado_en = now()`,
+      [ajustes.carritoMaxProductos, ajustes.carritoMaxCantidad],
+    );
   },
 };

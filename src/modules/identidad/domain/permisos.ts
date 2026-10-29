@@ -21,15 +21,15 @@ export type ModuloPanel = {
 const TODOS: readonly Rol[] = ["Administrador", "Vendedor", "Bodega", "Marketing"];
 
 export const MODULOS: readonly ModuloPanel[] = [
-  { href: "/panel/dashboard", label: "Dashboard", icon: "▤", grupo: "General", roles: TODOS },
-  { href: "/panel/inventario", label: "Inventario y compras", icon: "📦", grupo: "Operación", roles: ["Administrador", "Vendedor", "Bodega"] },
-  { href: "/panel/pedidos", label: "Pedidos", icon: "🧾", grupo: "Operación", roles: ["Administrador", "Vendedor", "Bodega"] },
-  { href: "/panel/venta-manual", label: "Venta manual", icon: "✎", grupo: "Operación", roles: ["Administrador", "Vendedor"] },
-  { href: "/panel/lista-compras", label: "Lista de compras", icon: "☑", grupo: "Operación", roles: ["Administrador", "Vendedor", "Bodega"] },
-  { href: "/panel/tienda", label: "Tienda online", icon: "🛍", grupo: "Negocio", roles: ["Administrador", "Marketing"] },
-  { href: "/panel/reportes", label: "Reportes", icon: "📊", grupo: "Negocio", roles: ["Administrador", "Marketing"] },
-  { href: "/panel/informes-ia", label: "Informes con IA", icon: "✦", grupo: "Negocio", roles: ["Administrador", "Marketing"] },
-  { href: "/panel/usuarios", label: "Usuarios y roles", icon: "👤", grupo: "Administración", roles: ["Administrador"] },
+  { href: "/panel/dashboard", label: "Dashboard", icon: "dashboard", grupo: "General", roles: TODOS },
+  { href: "/panel/inventario", label: "Inventario y compras", icon: "inventario", grupo: "Operación", roles: ["Administrador", "Vendedor", "Bodega"] },
+  { href: "/panel/pedidos", label: "Pedidos", icon: "pedidos", grupo: "Operación", roles: ["Administrador", "Vendedor", "Bodega"] },
+  { href: "/panel/venta-manual", label: "Venta manual", icon: "venta", grupo: "Operación", roles: ["Administrador", "Vendedor"] },
+  { href: "/panel/lista-compras", label: "Lista de compras", icon: "lista", grupo: "Operación", roles: ["Administrador", "Vendedor", "Bodega"] },
+  { href: "/panel/tienda", label: "Tienda online", icon: "tienda", grupo: "Negocio", roles: ["Administrador", "Marketing"] },
+  { href: "/panel/reportes", label: "Reportes", icon: "reportes", grupo: "Negocio", roles: ["Administrador", "Marketing"] },
+  { href: "/panel/informes-ia", label: "Informes con IA", icon: "ia", grupo: "Negocio", roles: ["Administrador", "Marketing"] },
+  { href: "/panel/usuarios", label: "Usuarios y roles", icon: "usuarios", grupo: "Administración", roles: ["Administrador"] },
 ];
 
 /** APIs del panel que no están ligadas a una página: quién puede llamarlas. */

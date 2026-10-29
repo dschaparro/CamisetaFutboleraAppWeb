@@ -17,7 +17,7 @@ Next.js App Router, con monolito modular hexagonal en cinco módulos vivos.
 | Tienda UX (catálogo, carrito, checkout) | ✅ Pulido responsive; cupón solo en checkout |
 | Panel UX (tablas, vacíos, formularios) | ✅ Alineado a tokens / `field-error` |
 | Tests (`npm test`, Node test runner) | ✅ Domain + application con fakes |
-| Pasarela Wompi | ⏳ Adaptador simulado detrás del puerto `Pasarela` |
+| Pasarela Mercado Pago | ✅ Checkout Pro (+ simulada local sin token) |
 | Supabase Storage (imágenes) | ⏳ Pendiente / bytea local según migración |
 | Correo transaccional | ⏳ Pendiente |
 | Despliegue Vercel | ⏳ Pendiente |
@@ -34,7 +34,7 @@ Decisiones de módulos: [`docs/ADR-modulos.md`](docs/ADR-modulos.md).
 | Base de datos | PostgreSQL vía Supabase (`pg` / Data API en infrastructure) |
 | Autenticación | JWT HS256 (`node:crypto`) + cookies httpOnly |
 | IA | Claude (Anthropic) vía puertos de `asistente` |
-| Pasarela | Puerto `Pasarela` en `pedidos` (hoy simulada) |
+| Pasarela | Mercado Pago Checkout Pro (`modoPasarela`) o simulada local |
 
 ## Requisitos
 
@@ -108,7 +108,7 @@ Errores de API: `{ error: { code, message, campos? } }` vía `@/lib/http`.
 
 Pulido de arquitectura y UX ya está. Scaffolds y checklist: [`docs/ops-producto.md`](docs/ops-producto.md).
 
-1. **Wompi** — `pasarelaActiva()` / completar transacciones + webhook
+1. **Mercado Pago** — ya integrado (Checkout Pro); falta solo credenciales + `APP_URL` https (ver `docs/ops-producto.md`)
 2. **Storage** — stub `storage-supabase` + `SUPABASE_STORAGE_BUCKET`
 3. **Correo** — puerto `NotificadorPedido` + stub
 4. **Vercel** — `vercel.json` + variables de producción

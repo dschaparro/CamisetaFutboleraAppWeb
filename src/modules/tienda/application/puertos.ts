@@ -1,4 +1,4 @@
-import type { Banner, Cupon, Liga, Producto, Promocion } from "@/modules/tienda/domain/types";
+import type { AjustesTienda, Banner, Cupon, Liga, Producto, Promocion } from "@/modules/tienda/domain/types";
 
 export type ImagenGuardada = { tipo: string; datos: Buffer };
 
@@ -19,4 +19,6 @@ export type TiendaRepo = {
   imagen(id: string): Promise<ImagenGuardada | null>;
   guardarImagen(id: string, img: ImagenGuardada): Promise<void>;
   borrarImagen(id: string): Promise<void>;
+  leerAjustes(): Promise<AjustesTienda>;
+  guardarAjustes(ajustes: AjustesTienda): Promise<void>;
 };

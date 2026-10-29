@@ -1,7 +1,7 @@
 /**
- * Pasarela de pagos SIMULADA (imita a Wompi). No cobra nada ni sale a internet.
- * Cuando se integre la pasarela real, se reemplaza este archivo por el adaptador
- * de Wompi con la misma función `cobrar`.
+ * Pasarela de pagos SIMULADA (local, sin red).
+ * Se usa cuando no hay MERCADOPAGO_ACCESS_TOKEN + APP_URL https.
+ * Con Mercado Pago configurado, Checkout Pro reemplaza este flujo (redirección).
  *
  * Tarjetas de prueba:
  * - 4242 4242 4242 4242 → aprobada

@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { ConfirmProvider } from "@/context/ConfirmContext";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -26,7 +27,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         />
       </head>
       {/* Extensiones del navegador (p. ej. ColorZilla) inyectan atributos en body y disparan hydration warning. */}
-      <body suppressHydrationWarning>{children}</body>
+      <body suppressHydrationWarning>
+        <ConfirmProvider>{children}</ConfirmProvider>
+      </body>
     </html>
   );
 }

@@ -12,7 +12,8 @@ import {
 /** Valor fijo del envío que hoy muestra el checkout. */
 export const ENVIO_COP = 18000;
 const MAX_ITEMS = 20;
-const MAX_CANTIDAD = 10;
+/** Tope por defecto; el checkout puede pasar el valor de ajustes de tienda. */
+const MAX_CANTIDAD_DEFAULT = 5;
 
 export class PedidoInvalidoError extends Error {
   readonly campos: Record<string, string>;
@@ -50,9 +51,15 @@ export type PedidoNuevo = {
  * Valida lo que manda el checkout. Los precios y nombres se toman del catálogo
  * (`catalogo`), no del navegador: así nadie cambia un precio desde el carrito.
  */
-export function validarPedidoNuevo(raw: unknown, catalogo: ProductoVenta[], opciones: { emailOpcional?: boolean } = {}): PedidoNuevo {
+export function validarPedidoNuevo(
+  raw: unknown,
+  catalogo: ProductoVenta[],
+  opciones: { emailOpcional?: boolean; maxCantidad?: number; maxItems?: number } = {},
+): PedidoNuevo {
   if (!esObjeto(raw)) throw new PedidoInvalidoError({ pedido: "Datos del pedido inválidos" });
   const errores: Record<string, string> = {};
+  const maxCantidad = opciones.maxCantidad && opciones.maxCantidad > 0 ? opciones.maxCantidad : MAX_CANTIDAD_DEFAULT;
+  const maxItems = opciones.maxItems && opciones.maxItems > 0 ? opciones.maxItems : MAX_ITEMS;
 
   const nombre = texto(raw.nombre);
   if (nombre.length < 3) errores.nombre = "Escribe el nombre de quien recibe";
@@ -71,8 +78,8 @@ export function validarPedidoNuevo(raw: unknown, catalogo: ProductoVenta[], opci
   const items: ItemPedido[] = [];
   if (!Array.isArray(raw.items) || raw.items.length === 0) {
     errores.items = "Tu carrito está vacío";
-  } else if (raw.items.length > MAX_ITEMS) {
-    errores.items = `Máximo ${MAX_ITEMS} productos por pedido`;
+  } else if (raw.items.length > maxItems) {
+    errores.items = `Máximo ${maxItems} productos por pedido`;
   } else {
     for (const it of raw.items) {
       const producto = esObjeto(it) ? catalogo.find((p) => p.slug === it.slug) : undefined;
@@ -83,8 +90,8 @@ export function validarPedidoNuevo(raw: unknown, catalogo: ProductoVenta[], opci
         errores.items = "Uno de los productos ya no está disponible. Revisa tu carrito.";
         break;
       }
-      if (typeof cantidad !== "number" || !Number.isInteger(cantidad) || cantidad < 1 || cantidad > MAX_CANTIDAD) {
-        errores.items = `La cantidad de cada producto debe estar entre 1 y ${MAX_CANTIDAD}`;
+      if (typeof cantidad !== "number" || !Number.isInteger(cantidad) || cantidad < 1 || cantidad > maxCantidad) {
+        errores.items = `La cantidad de cada producto debe estar entre 1 y ${maxCantidad}`;
         break;
       }
       if (!(TALLAS as readonly unknown[]).includes(talla) || !(MANGAS as readonly unknown[]).includes(manga)) {
