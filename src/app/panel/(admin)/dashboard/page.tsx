@@ -3,7 +3,7 @@ import { money } from "@/lib/money";
 import { obtenerDashboard } from "@/modules/operacion/application/reportes";
 import { reportesRepo } from "@/modules/operacion/infrastructure/repos";
 
-// Cifras en vivo desde Supabase: nunca se prerenderiza.
+// Composition: page → application + puerto (sin *-pg). Cifras en vivo: no prerenderizar.
 export const dynamic = "force-dynamic";
 
 const PILL: Record<string, string> = {

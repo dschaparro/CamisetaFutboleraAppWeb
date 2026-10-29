@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
-import { errorJson } from "@/modules/identidad/infrastructure/sesiones";
+import { errorJson } from "@/lib/http";
+import { PendienteDeBaseDeDatosError } from "@/lib/modo-datos";
 import { NoEncontradoError, OperacionInvalidaError } from "@/modules/operacion/domain/operacion";
 import { PedidoInvalidoError } from "@/modules/pedidos/domain/pedido";
 
@@ -11,6 +12,7 @@ export async function responder(accion: () => unknown | Promise<unknown>, estado
     if (err instanceof OperacionInvalidaError) return errorJson(400, "VALIDATION_ERROR", err.message, err.campos);
     if (err instanceof PedidoInvalidoError) return errorJson(400, "VALIDATION_ERROR", err.message, err.campos);
     if (err instanceof NoEncontradoError) return errorJson(404, "NOT_FOUND", err.message);
+    if (err instanceof PendienteDeBaseDeDatosError) return errorJson(503, "PENDIENTE_BD", err.message);
     throw err;
   }
 }

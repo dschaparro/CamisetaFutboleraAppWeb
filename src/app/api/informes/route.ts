@@ -1,25 +1,17 @@
 import { NextResponse } from "next/server";
 import { ClaudeConfigError } from "@/lib/claude";
+import { errorJson } from "@/lib/http";
 import { generarInforme } from "@/modules/asistente/application/generar-informe";
 import { InformeInvalidoError, SolicitudInvalidaError } from "@/modules/asistente/domain/errors";
 import { completarConClaude } from "@/modules/asistente/infrastructure/claude-completador";
 import { fuentesNegocio } from "@/modules/operacion/application/reportes";
 import { reportesRepo } from "@/modules/operacion/infrastructure/repos";
 import { allowAttempt } from "@/modules/identidad/infrastructure/rate-limit";
+import { clientKey } from "@/modules/identidad/infrastructure/sesiones";
 
 // Cada informe es una llamada de pago a la API: se limita por cliente.
 const LIMITE_INFORMES = 20;
 const VENTANA_MS = 60 * 60 * 1000;
-
-function clientKey(request: Request): string {
-  const forwarded = request.headers.get("x-forwarded-for");
-  if (forwarded) return forwarded.split(",")[0]?.trim() || "unknown";
-  return request.headers.get("x-real-ip") ?? "unknown";
-}
-
-function error(status: number, code: string, message: string) {
-  return NextResponse.json({ error: { code, message } }, { status });
-}
 
 /** Error de la API de Anthropic (trae `status`); se detecta sin importar el SDK aquí. */
 function estadoHttp(err: unknown): number | null {
@@ -30,16 +22,17 @@ function estadoHttp(err: unknown): number | null {
   return null;
 }
 
+/** Composition: rate-limit → application.generarInforme con puertos inyectados. */
 export async function POST(request: Request) {
   if (!allowAttempt(`informes:${clientKey(request)}`, LIMITE_INFORMES, VENTANA_MS)) {
-    return error(429, "RATE_LIMITED", "Ya generaste varios informes seguidos. Prueba de nuevo en un rato.");
+    return errorJson(429, "RATE_LIMITED", "Ya generaste varios informes seguidos. Prueba de nuevo en un rato.");
   }
 
   let body: unknown;
   try {
     body = await request.json();
   } catch {
-    return error(400, "VALIDATION_ERROR", "Cuerpo JSON inválido");
+    return errorJson(400, "VALIDATION_ERROR", "Cuerpo JSON inválido");
   }
 
   const solicitud =
@@ -53,15 +46,15 @@ export async function POST(request: Request) {
     return NextResponse.json({ informe });
   } catch (err) {
     if (err instanceof SolicitudInvalidaError) {
-      return error(400, "VALIDATION_ERROR", err.message);
+      return errorJson(400, "VALIDATION_ERROR", err.message);
     }
     if (err instanceof ClaudeConfigError) {
       console.error("[informes]", err.message);
-      return error(503, "IA_NO_CONFIGURADA", "La IA no está configurada: falta ANTHROPIC_API_KEY en .env.local.");
+      return errorJson(503, "IA_NO_CONFIGURADA", "La IA no está configurada: falta ANTHROPIC_API_KEY en .env.local.");
     }
     if (err instanceof InformeInvalidoError) {
       console.error("[informes] respuesta inválida:", err.message);
-      return error(502, "IA_RESPUESTA_INVALIDA", "La IA devolvió un informe con formato inválido. Intenta de nuevo.");
+      return errorJson(502, "IA_RESPUESTA_INVALIDA", "La IA devolvió un informe con formato inválido. Intenta de nuevo.");
     }
 
     const status = estadoHttp(err);
@@ -69,11 +62,11 @@ export async function POST(request: Request) {
     console.error("[informes] fallo al llamar a la API:", status ?? "", detalle);
 
     if (status === 401 || status === 403) {
-      return error(503, "IA_CREDENCIALES", "La API key de Anthropic no es válida o no tiene permisos.");
+      return errorJson(503, "IA_CREDENCIALES", "La API key de Anthropic no es válida o no tiene permisos.");
     }
     if (status === 429) {
-      return error(429, "IA_LIMITE", "La API de Claude está saturada o sin cupo. Intenta en unos minutos.");
+      return errorJson(429, "IA_LIMITE", "La API de Claude está saturada o sin cupo. Intenta en unos minutos.");
     }
-    return error(502, "IA_ERROR", "No se pudo generar el informe con la IA. Intenta de nuevo.");
+    return errorJson(502, "IA_ERROR", "No se pudo generar el informe con la IA. Intenta de nuevo.");
   }
 }

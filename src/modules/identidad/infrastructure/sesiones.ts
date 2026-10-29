@@ -62,6 +62,4 @@ export function clientKey(request: Request): string {
   return request.headers.get("x-real-ip") ?? "unknown";
 }
 
-export function errorJson(status: number, code: string, message: string, campos?: Record<string, string>) {
-  return NextResponse.json({ error: { code, message, ...(campos ? { campos } : {}) } }, { status });
-}
+export { errorJson } from "@/lib/http";
