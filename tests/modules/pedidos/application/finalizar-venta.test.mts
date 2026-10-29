@@ -60,6 +60,10 @@ function tiendaFake(): TiendaRepo & { ventas: unknown[] } {
     },
     async guardarImagen() {},
     async borrarImagen() {},
+    async leerAjustes() {
+      return { carritoMaxProductos: 20, carritoMaxCantidad: 5 };
+    },
+    async guardarAjustes() {},
   };
 }
 

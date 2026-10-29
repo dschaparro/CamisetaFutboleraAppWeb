@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState, type FormEvent } from "react";
 import s from "@/components/store/cuenta.module.css";
+import { useCart } from "@/context/CartContext";
 
 type Demo = { password: string; cuentas: readonly { email: string; rol: string; descripcion: string }[] };
 
@@ -16,6 +17,7 @@ function volverSeguro(): string | null {
 
 export default function IngresarPage() {
   const router = useRouter();
+  const { enlazarTrasAuth } = useCart();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [verPass, setVerPass] = useState(false);
@@ -42,6 +44,7 @@ export default function IngresarPage() {
     try {
       const res = await fetch("/api/auth/ingresar", {
         method: "POST",
+        credentials: "same-origin",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email: correo, password: clave }),
       });
@@ -50,7 +53,12 @@ export default function IngresarPage() {
         setError(data.error?.message ?? "No se pudo iniciar sesión");
         return;
       }
-      router.push(data.tipo === "cliente" ? (volverSeguro() ?? data.destino) : data.destino);
+      if (data.tipo === "cliente") {
+        await enlazarTrasAuth();
+        router.push(volverSeguro() ?? data.destino);
+      } else {
+        router.push(data.destino);
+      }
       router.refresh();
     } catch {
       setError("No hay conexión con el servidor. Intenta de nuevo.");
@@ -71,7 +79,7 @@ export default function IngresarPage() {
         <h1>Ingresa a tu cuenta</h1>
         {volver === "/checkout" ? (
           <p className={`${s.sub} ${s.avisoCompra}`}>
-            🛒 Para finalizar tu compra, ingresa o <Link href="/registro?volver=/checkout">crea tu cuenta gratis</Link>. Tu carrito
+            Para finalizar tu compra, ingresa o <Link href="/registro?volver=/checkout">crea tu cuenta gratis</Link>. Tu carrito
             te espera.
           </p>
         ) : (

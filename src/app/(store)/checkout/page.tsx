@@ -2,8 +2,11 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useEffect, useState, type FormEvent } from "react";
+import { useEffect, useState, type FormEvent, type InputHTMLAttributes } from "react";
+import { IconoBanco, IconoCamion, IconoCandado, IconoCheck, IconoTarjeta } from "@/components/icons/pago";
+import s from "@/components/store/checkout.module.css";
 import { useCart } from "@/context/CartContext";
+import { useToast } from "@/context/ToastContext";
 import { money } from "@/lib/money";
 import type { Direccion } from "@/modules/identidad/domain/perfil-tipos";
 
@@ -12,21 +15,54 @@ const ENVIO = 18000;
 type Pago = "pasarela" | "contraentrega" | "abono";
 type Campos = Partial<Record<"nombre" | "telefono" | "email" | "direccion" | "ciudad" | "medioPago" | "items", string>>;
 
-const MEDIOS: { valor: Pago; titulo: string; texto: string }[] = [
-  { valor: "pasarela", titulo: "Pago en línea — tarjeta, PSE o Nequi", texto: "Pagas ahora en la pasarela segura (Wompi). Recibes confirmación inmediata." },
-  { valor: "contraentrega", titulo: "Pago contra entrega", texto: "Pagas en efectivo o transferencia al recibir tu pedido (según cobertura de la mensajería)." },
-  { valor: "abono", titulo: "Abono del 50 % + saldo contra entrega", texto: "Pagas la mitad ahora en línea para confirmar tu pedido y el resto al recibirlo." },
+const MEDIOS: { valor: Pago; titulo: string; texto: string; Icono: typeof IconoTarjeta }[] = [
+  {
+    valor: "pasarela",
+    titulo: "Pagar ahora en línea",
+    texto: "Tarjeta, PSE o Nequi con Mercado Pago. Te llevamos a un checkout seguro y vuelves acá cuando termines.",
+    Icono: IconoTarjeta,
+  },
+  {
+    valor: "contraentrega",
+    titulo: "Pagar al recibir",
+    texto: "Confirmas el pedido hoy y pagas en efectivo o transferencia cuando llegue el mensajero (según cobertura).",
+    Icono: IconoBanco,
+  },
+  {
+    valor: "abono",
+    titulo: "Abono del 50 % ahora",
+    texto: "Reservas con la mitad en línea; el resto lo pagas contra entrega. Ideal si quieres asegurar la talla.",
+    Icono: IconoCandado,
+  },
 ];
 
+function Pasos() {
+  return (
+    <nav className={s.pasos} aria-label="Progreso de compra">
+      <Link href="/carrito" className={`${s.paso} ${s.pasoHecho}`}>
+        <span className={s.pasoNum}>1</span> Carrito
+      </Link>
+      <span className={s.pasoSep} aria-hidden="true" />
+      <span className={`${s.paso} ${s.pasoActivo}`}>
+        <span className={s.pasoNum}>2</span> Datos
+      </span>
+      <span className={s.pasoSep} aria-hidden="true" />
+      <span className={s.paso}>
+        <span className={s.pasoNum}>3</span> Pago
+      </span>
+    </nav>
+  );
+}
+
 export default function CheckoutPage() {
-  const { items, subtotal, clear } = useCart();
+  const { items, listo, subtotal, clear } = useCart();
+  const { toast } = useToast();
   const router = useRouter();
 
   const [form, setForm] = useState({ nombre: "", telefono: "", email: "", direccion: "", ciudad: "Bogotá" });
   const [pago, setPago] = useState<Pago>("pasarela");
   const [cliente, setCliente] = useState<string | null>(null);
   const [campos, setCampos] = useState<Campos>({});
-  const [error, setError] = useState<string | null>(null);
   const [enviando, setEnviando] = useState(false);
 
   const [direcciones, setDirecciones] = useState<Direccion[]>([]);
@@ -34,33 +70,52 @@ export default function CheckoutPage() {
 
   function usarDireccion(d: Direccion) {
     setDirElegida(d.id);
-    setForm((f) => ({ ...f, nombre: d.destinatario, telefono: d.telefono, direccion: d.indicaciones ? `${d.direccion} (${d.indicaciones})` : d.direccion, ciudad: d.ciudad }));
+    setForm((f) => ({
+      ...f,
+      nombre: d.destinatario,
+      telefono: d.telefono,
+      direccion: d.indicaciones ? `${d.direccion} (${d.indicaciones})` : d.direccion,
+      ciudad: d.ciudad,
+    }));
   }
 
-  // Con sesión de cliente se llenan sus datos y su dirección principal; el pedido queda en «Mis pedidos».
   useEffect(() => {
+    let cancelado = false;
     fetch("/api/cuenta/yo")
       .then((r) => (r.ok ? r.json() : null))
       .then((d: { cliente?: { nombre: string; email: string; telefono: string | null }; perfil?: { direcciones: Direccion[] } } | null) => {
-        if (!d?.cliente) return;
+        if (cancelado || !d?.cliente) return;
         const c = d.cliente;
         setCliente(c.nombre);
-        setForm((f) => ({ ...f, nombre: f.nombre || c.nombre, email: f.email || c.email, telefono: f.telefono || (c.telefono ?? "") }));
+        setForm((f) => ({
+          ...f,
+          nombre: f.nombre || c.nombre,
+          email: f.email || c.email,
+          telefono: f.telefono || (c.telefono ?? ""),
+        }));
         const lista = d.perfil?.direcciones ?? [];
         setDirecciones(lista);
         const principal = lista.find((x) => x.predeterminada);
         if (principal) usarDireccion(principal);
       })
       .catch(() => {});
+    return () => {
+      cancelado = true;
+    };
   }, []);
 
   const [codigoCupon, setCodigoCupon] = useState("");
   const [cupon, setCupon] = useState<{ codigo: string; descuento: number } | null>(null);
   const [errorCupon, setErrorCupon] = useState<string | null>(null);
   const [validandoCupon, setValidandoCupon] = useState(false);
-  const itemsApi = items.map((i) => ({ slug: i.slug, talla: i.size, manga: i.sleeve, personalizacion: i.custom, cantidad: i.qty }));
+  const itemsApi = items.map((i) => ({
+    slug: i.slug,
+    talla: i.size,
+    manga: i.sleeve,
+    personalizacion: i.custom,
+    cantidad: i.qty,
+  }));
 
-  /** El servidor calcula el subtotal con precios reales y dice si el cupón aplica. */
   async function aplicarCupon() {
     if (!codigoCupon.trim()) return;
     setValidandoCupon(true);
@@ -96,7 +151,6 @@ export default function CheckoutPage() {
     e.preventDefault();
     if (enviando || items.length === 0) return;
     setEnviando(true);
-    setError(null);
     try {
       const res = await fetch("/api/tienda/pedidos", {
         method: "POST",
@@ -105,38 +159,103 @@ export default function CheckoutPage() {
           ...form,
           medioPago: pago,
           cupon: cupon?.codigo,
-          // Solo qué y cuánto: el precio lo pone el servidor desde el catálogo.
           items: itemsApi,
         }),
       });
       const data = (await res.json()) as { siguiente?: string; error?: { message?: string; campos?: Campos } };
       if (!res.ok || !data.siguiente) {
-        setCampos(data.error?.campos ?? {});
-        setError(data.error?.message ?? "No se pudo crear el pedido");
+        const camposErr = data.error?.campos ?? {};
+        const msg = data.error?.message ?? "No se pudo crear el pedido";
+        setCampos(camposErr);
+        if (Object.keys(camposErr).length > 0) {
+          toast({ variant: "error", titulo: "Revisa tus datos", detalle: "Completa los campos marcados" });
+          const primero = Object.keys(camposErr).find((k) => k !== "items") ?? "items";
+          if (primero !== "items") document.getElementById(`co-${primero}`)?.focus();
+        } else {
+          toast({ variant: "error", titulo: "No se pudo continuar", detalle: msg });
+        }
         return;
       }
       clear();
+      toast({
+        variant: "ok",
+        titulo: pago === "contraentrega" ? "Pedido confirmado" : "Datos listos",
+        detalle: pago === "contraentrega" ? "Te llevamos al resumen" : "Siguiente: pago seguro",
+      });
       router.push(data.siguiente);
     } catch {
-      setError("No hay conexión con el servidor. Intenta de nuevo.");
+      toast({ variant: "error", titulo: "Sin conexión", detalle: "Revisa tu red e intenta otra vez" });
     } finally {
       setEnviando(false);
     }
   }
 
+  function campo(k: keyof typeof form, label: string, extra: InputHTMLAttributes<HTMLInputElement> = {}, ancho = false) {
+    return (
+      <div className={`field${ancho ? ` ${s.ancho}` : ""}`}>
+        <label htmlFor={`co-${k}`}>{label}</label>
+        <input id={`co-${k}`} value={form[k]} onChange={set(k)} aria-invalid={!!campos[k]} {...extra} />
+        {campos[k] ? <span className="field-error">{campos[k]}</span> : null}
+      </div>
+    );
+  }
+
+  const ctaLabel = enviando
+    ? "Creando tu pedido…"
+    : pago === "contraentrega"
+      ? "Confirmar pedido"
+      : "Continuar al pago seguro";
+
+  if (!listo) {
+    return (
+      <div className={`wrap ${s.pagina}`} aria-busy="true" aria-label="Cargando checkout">
+        <header className="page-head">
+          <p className="eyebrow">Pedido</p>
+          <h1>Datos y pago</h1>
+        </header>
+        <Pasos />
+        <div className={s.layout} aria-hidden="true">
+          <div className={s.colForm}>
+            <div className={`card ${s.skelBloque}`}>
+              <span className="skel-bone" style={{ height: 14, width: "40%" }} />
+              <span className="skel-bone" style={{ height: 42, width: "100%", borderRadius: 8 }} />
+              <span className="skel-bone" style={{ height: 42, width: "100%", borderRadius: 8 }} />
+            </div>
+            <div className={`card ${s.skelBloque}`}>
+              <span className="skel-bone" style={{ height: 14, width: "35%" }} />
+              <span className="skel-bone" style={{ height: 56, width: "100%", borderRadius: 10 }} />
+              <span className="skel-bone" style={{ height: 56, width: "100%", borderRadius: 10 }} />
+            </div>
+          </div>
+          <aside className={`card ${s.resumen}`}>
+            <div className={s.resumenCuerpo}>
+              <span className="skel-bone" style={{ height: 14, width: "50%" }} />
+              <span className="skel-bone" style={{ height: 12, width: "100%" }} />
+              <span className="skel-bone" style={{ height: 12, width: "80%" }} />
+              <span className="skel-bone" style={{ height: 44, width: "100%", borderRadius: 8, marginTop: 8 }} />
+            </div>
+          </aside>
+        </div>
+      </div>
+    );
+  }
+
   if (items.length === 0) {
     return (
-      <div className="wrap cart-page">
+      <div className={`wrap ${s.pagina}`}>
         <header className="page-head">
           <p className="eyebrow">Pedido</p>
           <h1>Checkout</h1>
         </header>
-        <div className="cart-vacio">
+        <div className={s.vacio}>
           <h2>Tu carrito está vacío</h2>
           <p>Agrega una camiseta para continuar con la compra.</p>
-          <div className="cart-vacio-acciones">
+          <div className={s.vacioAcciones}>
             <Link className="btn btn-gold" href="/catalogo">
               Ir al catálogo
+            </Link>
+            <Link className="btn btn-outline" href="/carrito">
+              Ver carrito
             </Link>
           </div>
         </div>
@@ -144,38 +263,19 @@ export default function CheckoutPage() {
     );
   }
 
-  const campo = (k: keyof typeof form, label: string, extra: React.InputHTMLAttributes<HTMLInputElement> = {}, ancho = false) => (
-    <div className="field" style={ancho ? { gridColumn: "1/-1" } : undefined}>
-      <label htmlFor={`co-${k}`}>{label}</label>
-      <input
-        id={`co-${k}`}
-        value={form[k]}
-        onChange={set(k)}
-        aria-invalid={!!campos[k]}
-        style={campos[k] ? { borderColor: "var(--danger)" } : undefined}
-        {...extra}
-      />
-      {campos[k] && <span className="field-error">{campos[k]}</span>}
-    </div>
-  );
-
   return (
-    <div className="wrap checkout-page">
+    <div className={`wrap ${s.pagina}`}>
       <header className="page-head">
-        <p className="eyebrow">Pedido</p>
-        <h1>Datos y pago</h1>
-        <p className="section-note">Revisa el resumen; el cupón y el envío se confirman aquí.</p>
+        <p className="eyebrow">Compra segura</p>
+        <h1>Tus datos y cómo pagar</h1>
+        <p className="section-note">Revisa el resumen. El cupón y el envío se confirman en este paso.</p>
       </header>
-      <div className="checkout-steps">
-        <div className="step active"><span className="num">1</span> Carrito</div>
-        <div className="sep" />
-        <div className="step active"><span className="num">2</span> Datos y pago</div>
-        <div className="sep" />
-        <div className="step"><span className="num">3</span> Confirmación</div>
-      </div>
-      <form className="checkout-layout" onSubmit={confirmar} noValidate>
-        <div className="checkout-form">
-          <div className="guest-banner">
+
+      <Pasos />
+
+      <form id="checkout-form" className={s.layout} onSubmit={confirmar} noValidate>
+        <div className={s.colForm}>
+          <div className={s.banner}>
             {cliente ? (
               <div>
                 <b>Comprando como {cliente}</b>
@@ -194,9 +294,9 @@ export default function CheckoutPage() {
             )}
           </div>
 
-          <fieldset>
+          <fieldset className={s.bloque}>
             <legend>Datos de contacto y envío</legend>
-            {direcciones.length > 0 && (
+            {direcciones.length > 0 ? (
               <div className="field" style={{ marginBottom: 14 }}>
                 <label htmlFor="co-guardada">Enviar a una dirección guardada</label>
                 <select
@@ -216,8 +316,8 @@ export default function CheckoutPage() {
                   <option value="">Otra dirección (escribirla)</option>
                 </select>
               </div>
-            )}
-            <div className="form-grid">
+            ) : null}
+            <div className={s.grid}>
               {campo("nombre", "Nombre completo", { autoComplete: "name" })}
               {campo("telefono", "Celular / WhatsApp", { autoComplete: "tel", inputMode: "tel" })}
               {campo("email", "Correo electrónico", { type: "email", autoComplete: "email" }, true)}
@@ -226,84 +326,157 @@ export default function CheckoutPage() {
             </div>
           </fieldset>
 
-          <fieldset>
+          <fieldset className={s.bloque}>
             <legend>Método de pago</legend>
-            {MEDIOS.map((m) => (
-              <label key={m.valor} className={`pay-option${pago === m.valor ? " selected" : ""}`}>
-                <div className="head">
-                  <input type="radio" name="pago" checked={pago === m.valor} onChange={() => setPago(m.valor)} /> {m.titulo}
-                </div>
-                <p>{m.texto}</p>
-              </label>
-            ))}
+            <div className={s.medios} role="radiogroup" aria-label="Método de pago">
+              {MEDIOS.map((m) => (
+                <label key={m.valor} className={`${s.medio}${pago === m.valor ? ` ${s.medioSeleccionado}` : ""}`}>
+                  <div className={s.medioCabeza}>
+                    <input type="radio" name="pago" checked={pago === m.valor} onChange={() => setPago(m.valor)} />
+                    <m.Icono size={18} aria-hidden />
+                    {m.titulo}
+                  </div>
+                  <p>{m.texto}</p>
+                </label>
+              ))}
+            </div>
           </fieldset>
 
-          {error && (
-            <p className="form-error" role="alert" style={{ marginBottom: 12 }}>
-              {campos.items ?? error}
+          {campos.items ? (
+            <p className="form-error" role="alert">
+              {campos.items}
             </p>
-          )}
-          <button className="btn btn-gold btn-block" style={{ padding: 14 }} disabled={enviando}>
-            {enviando ? "Creando pedido…" : pago === "contraentrega" ? "Confirmar pedido" : "Continuar al pago"}
+          ) : null}
+
+          <button type="submit" className={`btn btn-gold btn-block ${s.cta} ${s.ctaEscritorio}`} disabled={enviando}>
+            {ctaLabel}
           </button>
-          <p className="legal-note">
-            Al confirmar aceptas los <Link href="/terminos">Términos y Condiciones</Link> y la Política de tratamiento de datos.
+          <p className={s.legal}>
+            Al continuar aceptas los <Link href="/terminos">Términos y Condiciones</Link> y la política de datos. Tus
+            pagos en línea se procesan con Mercado Pago.
           </p>
         </div>
 
-        <aside className="card summary-box checkout-resumen" aria-label="Resumen del pedido">
-          <h2>Resumen del pedido</h2>
-          <div style={{ fontSize: ".83rem", color: "var(--ink-soft)", display: "flex", flexDirection: "column", gap: 6 }}>
+        <aside className={`card ${s.resumen}`} aria-label="Resumen del pedido">
+          <div className={s.resumenTop}>
+            <h2>Resumen del pedido</h2>
+            <span>
+              {items.length} {items.length === 1 ? "producto" : "productos"} · envío a {form.ciudad || "Colombia"}
+            </span>
+          </div>
+          <div className={s.resumenCuerpo}>
             {items.map((i) => (
-              <div key={i.id} style={{ display: "flex", justifyContent: "space-between", gap: 10 }}>
+              <div key={i.id} className={s.linea}>
                 <span>
                   {i.qty}× {i.name} — {i.size}
                 </span>
                 <span className="tabular">{money(i.price * i.qty)}</span>
               </div>
             ))}
-          </div>
-          <div className="summary-row"><span>Subtotal</span><span className="tabular">{money(subtotal)}</span></div>
-          <div className="summary-row"><span>Envío ({form.ciudad || "—"})</span><span className="tabular">{money(ENVIO)}</span></div>
-          {cupon && descuentoCupon > 0 && (
-            <div className="summary-row" style={{ color: "var(--ok)" }}>
-              <span>Cupón {cupon.codigo}</span>
-              <span className="tabular">−{money(descuentoCupon)}</span>
+            <div className={s.fila}>
+              <span>Subtotal</span>
+              <span className="tabular">{money(subtotal)}</span>
             </div>
-          )}
-          <div className="summary-row total"><span>Total</span><span className="tabular">{money(total)}</span></div>
-          <div className="cupon-caja">
-            {cupon ? (
-              <div className="cupon-ok">
-                <span>✓ Cupón <b>{cupon.codigo}</b> aplicado</span>
-                <button type="button" className="btn btn-ghost btn-sm" onClick={() => { setCupon(null); setCodigoCupon(""); }}>
-                  Quitar
-                </button>
+            <div className={s.fila}>
+              <span>Envío</span>
+              <span className="tabular">{money(ENVIO)}</span>
+            </div>
+            {cupon && descuentoCupon > 0 ? (
+              <div className={`${s.fila} ${s.lineaDescuento}`}>
+                <span>Cupón {cupon.codigo}</span>
+                <span className="tabular">−{money(descuentoCupon)}</span>
               </div>
-            ) : (
-              <>
-                <label htmlFor="co-cupon">¿Tienes un cupón?</label>
-                <div className="cupon-fila">
-                  <input
-                    id="co-cupon"
-                    placeholder="Ej. MUNDIAL10"
-                    value={codigoCupon}
-                    onChange={(e) => { setCodigoCupon(e.target.value.toUpperCase()); setErrorCupon(null); }}
-                    onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); aplicarCupon(); } }}
-                  />
-                  <button type="button" className="btn btn-navy btn-sm" disabled={validandoCupon || !codigoCupon.trim()} onClick={aplicarCupon}>
-                    {validandoCupon ? "…" : "Aplicar"}
+            ) : null}
+            <div className={s.filaTotal}>
+              <span>Total</span>
+              <span className="tabular">{money(total)}</span>
+            </div>
+
+            <div className={s.cupon}>
+              {cupon ? (
+                <div className={s.cuponOk}>
+                  <span style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
+                    <IconoCheck size={14} /> Cupón <b>{cupon.codigo}</b> aplicado
+                  </span>
+                  <button
+                    type="button"
+                    className="btn btn-ghost btn-sm"
+                    onClick={() => {
+                      setCupon(null);
+                      setCodigoCupon("");
+                    }}
+                  >
+                    Quitar
                   </button>
                 </div>
-                {errorCupon && <small className="cupon-error">{errorCupon}</small>}
-              </>
-            )}
+              ) : (
+                <>
+                  <label htmlFor="co-cupon">¿Tienes un cupón?</label>
+                  <div className={s.cuponFila}>
+                    <input
+                      id="co-cupon"
+                      placeholder="Ej. MUNDIAL10"
+                      value={codigoCupon}
+                      autoComplete="off"
+                      onChange={(e) => {
+                        setCodigoCupon(e.target.value.toUpperCase());
+                        setErrorCupon(null);
+                      }}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter") {
+                          e.preventDefault();
+                          void aplicarCupon();
+                        }
+                      }}
+                    />
+                    <button
+                      type="button"
+                      className="btn btn-navy btn-sm"
+                      disabled={validandoCupon || !codigoCupon.trim()}
+                      onClick={() => void aplicarCupon()}
+                    >
+                      {validandoCupon ? "…" : "Aplicar"}
+                    </button>
+                  </div>
+                  {errorCupon ? <small className={s.cuponError}>{errorCupon}</small> : null}
+                </>
+              )}
+            </div>
+
+            {pago === "abono" ? (
+              <div className={s.abono}>
+                <span>Pagas hoy (50 %)</span>
+                <span className="tabular">{money(Math.round(total / 2))}</span>
+              </div>
+            ) : null}
+
+            <div className={s.confianza}>
+              <div className={s.confianzaItem}>
+                <IconoCandado size={15} aria-hidden />
+                <span>Datos cifrados · pagos con Mercado Pago</span>
+              </div>
+              <div className={s.confianzaItem}>
+                <IconoCamion size={15} aria-hidden />
+                <span>Envío a Colombia · 1–2 días hábiles en ciudades principales</span>
+              </div>
+              <div className={s.confianzaItem}>
+                <IconoCheck size={15} aria-hidden />
+                <span>Puedes seguir el pedido en «Mis pedidos» si tienes cuenta</span>
+              </div>
+            </div>
           </div>
-          {pago === "abono" && (
-            <div className="summary-row"><span>Pagas hoy (50 %)</span><span className="tabular">{money(Math.round(total / 2))}</span></div>
-          )}
         </aside>
       </form>
+
+      <div className={s.barraMovil} aria-label="Total y continuar">
+        <div>
+          <small>Total</small>
+          <b className="tabular">{money(total)}</b>
+        </div>
+        <button type="submit" form="checkout-form" className={`btn btn-gold ${s.cta}`} disabled={enviando}>
+          {enviando ? "…" : pago === "contraentrega" ? "Confirmar" : "Continuar"}
+        </button>
+      </div>
     </div>
   );
 }

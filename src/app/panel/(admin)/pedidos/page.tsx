@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { IconoCerrar } from "@/components/icons/pago";
 import { money } from "@/lib/money";
 import { SIGUIENTES } from "@/modules/pedidos/domain/pedido";
 import type { EstadoPedido, Pedido } from "@/modules/pedidos/domain/types";
@@ -79,7 +80,7 @@ function Detalle({ p, onCerrar, onCambio }: { p: PedidoPanel; onCerrar: () => vo
             <span style={{ fontSize: ".78rem", color: "var(--ink-mute)" }}>{fecha(p.creadoEn, true)}</span>
           </div>
           <button className={s.cerrar} onClick={onCerrar} aria-label="Cerrar" autoFocus>
-            ✕
+            <IconoCerrar size={16} />
           </button>
         </div>
 

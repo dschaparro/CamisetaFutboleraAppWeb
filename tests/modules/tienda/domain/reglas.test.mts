@@ -6,6 +6,7 @@ import {
   CuponInvalidoError,
   DatosInvalidosError,
   mejorPromocion,
+  validarAjustes,
   validarBanner,
   validarCupon,
   validarProducto,
@@ -104,5 +105,16 @@ describe("bannersVigentes", () => {
   it("solo activos dentro de su fecha, en orden", () => {
     const b = (id: string, orden: number, o: Partial<Banner> = {}) => ({ id, orden, activo: true, desde: "2026-10-01T00:00:00Z", hasta: "2026-10-31T00:00:00Z", ...o }) as Banner;
     assert.deepEqual(bannersVigentes([b("b", 2), b("a", 1), b("x", 0, { activo: false }), b("y", 0, { hasta: "2026-10-02T00:00:00Z" })], AHORA).map((x) => x.id), ["a", "b"]);
+  });
+});
+
+describe("validarAjustes", () => {
+  it("acepta topes válidos y rechaza fuera de rango", () => {
+    const a = validarAjustes({ carritoMaxProductos: 20, carritoMaxCantidad: 5 });
+    assert.equal(a.carritoMaxProductos, 20);
+    assert.equal(a.carritoMaxCantidad, 5);
+    assert.throws(() => validarAjustes({ carritoMaxProductos: 0, carritoMaxCantidad: 5 }), DatosInvalidosError);
+    assert.throws(() => validarAjustes({ carritoMaxProductos: 20, carritoMaxCantidad: 0 }), DatosInvalidosError);
+    assert.throws(() => validarAjustes({ carritoMaxProductos: 20, carritoMaxCantidad: 21 }), DatosInvalidosError);
   });
 });

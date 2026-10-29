@@ -11,7 +11,16 @@ const CATALOGO: ProductoTienda[] = [
 
 describe("validarAccion", () => {
   it("acepta destinos de la lista y productos del catálogo", () => {
-    assert.deepEqual(validarAccion("abrir_pagina", { ruta: "/cuenta#pedidos" }, CATALOGO), { tipo: "abrir", ruta: "/cuenta#pedidos", etiqueta: "Mis pedidos" });
+    assert.deepEqual(validarAccion("abrir_pagina", { ruta: "/cuenta?seccion=pedidos" }, CATALOGO), {
+      tipo: "abrir",
+      ruta: "/cuenta?seccion=pedidos",
+      etiqueta: "Mis pedidos",
+    });
+    assert.deepEqual(validarAccion("abrir_pagina", { ruta: "/cuenta#pedidos" }, CATALOGO), {
+      tipo: "abrir",
+      ruta: "/cuenta#pedidos",
+      etiqueta: "Mis pedidos",
+    });
     assert.equal(validarAccion("abrir_pagina", { ruta: "/producto/RM-27T" }, CATALOGO)?.etiqueta, "Ver Real Madrid Titular 2026/27");
   });
 

@@ -156,6 +156,14 @@
   font-weight: 600;
   color: var(--ink-soft);
 }
+.menuIcono {
+  display: inline-flex;
+  flex: none;
+  color: var(--ink-mute);
+}
+.menu .menuActivo .menuIcono {
+  color: var(--gold);
+}
 .menu button:hover {
   background: var(--surface-2);
   color: var(--ink);
@@ -480,4 +488,41 @@
   display: block;
   color: var(--ink);
   margin-bottom: 6px;
+}
+
+/* Skeleton de Mi cuenta (el anillo CF viene de LoaderMarca) */
+.cargando {
+  padding: 36px 0 72px;
+}
+
+.cargandoEstado {
+  margin-bottom: 22px;
+}
+
+.skelMenu {
+  padding: 12px;
+  display: grid;
+  gap: 8px;
+}
+
+.skelMenuItem {
+  height: 40px;
+  border-radius: var(--radius-s);
+}
+
+.skelPanel {
+  padding: 20px;
+  display: grid;
+  gap: 14px;
+  min-height: 220px;
+}
+
+.skelLinea {
+  height: 14px;
+  border-radius: 6px;
+}
+
+.skelBloque {
+  height: 72px;
+  border-radius: var(--radius-s);
 }

@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { IconoBuscar } from "@/components/icons/pago";
 import { money } from "@/lib/money";
 
 type Fila = { id: string; nombre: string; sku: string; proveedor: string; costo: number | null; precio: number; margenPct: number | null; stock: number };
@@ -74,7 +75,7 @@ export default function InventarioCliente() {
       </div>
 
       <div className="toolbar">
-        <div className="search">🔎 <input placeholder="Buscar producto o SKU..." value={busqueda} onChange={(e) => setBusqueda(e.target.value)} aria-label="Buscar producto o SKU" /></div>
+        <div className="search"><IconoBuscar size={16} /><input placeholder="Buscar producto o SKU..." value={busqueda} onChange={(e) => setBusqueda(e.target.value)} aria-label="Buscar producto o SKU" /></div>
         <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
           <select className="chip" value={proveedor} onChange={(e) => setProveedor(e.target.value)} aria-label="Filtrar por proveedor">
             <option value="">Todos los proveedores</option>

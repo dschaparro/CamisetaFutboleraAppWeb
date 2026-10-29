@@ -10,7 +10,8 @@ import type {
   ImagenGuardada,
   TiendaRepo,
 } from "@/modules/tienda/application/puertos";
-import type { Banner, Cupon, Liga, Posicion, Producto, Promocion } from "@/modules/tienda/domain/types";
+import { ajustesPorDefecto } from "@/modules/tienda/domain/reglas";
+import type { AjustesTienda, Banner, Cupon, Liga, Posicion, Producto, Promocion } from "@/modules/tienda/domain/types";
 
 export type { Coleccion, DatosTienda, ImagenGuardada, TiendaRepo };
 
@@ -21,6 +22,7 @@ type Store = {
   cupones: Cupon[];
   banners: Banner[];
   imagenes: Map<string, ImagenGuardada>;
+  ajustes: AjustesTienda;
 };
 
 /** Foto inicial de cada producto y su encuadre. */
@@ -70,6 +72,7 @@ function sembrar(): Store {
         visible: true,
       };
     }),
+    ajustes: ajustesPorDefecto(),
     promociones: PROMOCIONES.map((p, i) => ({
       id: `promo-${i + 1}`,
       etiqueta: p.etiqueta,
@@ -115,11 +118,11 @@ function sembrar(): Store {
   };
 }
 
-// V2: incluye imágenes y opciones de diseño (se vuelve a sembrar si el servidor tenía la versión anterior).
-const global = globalThis as typeof globalThis & { __cfSimTiendaV3?: Store };
+// V4: incluye ajustes (carrito_max_productos).
+const global = globalThis as typeof globalThis & { __cfSimTiendaV4?: Store };
 function store(): Store {
-  global.__cfSimTiendaV3 ??= sembrar();
-  return global.__cfSimTiendaV3;
+  global.__cfSimTiendaV4 ??= sembrar();
+  return global.__cfSimTiendaV4;
 }
 
 export const tiendaSimulada: TiendaRepo = {
@@ -147,6 +150,12 @@ export const tiendaSimulada: TiendaRepo = {
   },
   async borrarImagen(id) {
     store().imagenes.delete(id);
+  },
+  async leerAjustes() {
+    return { ...store().ajustes };
+  },
+  async guardarAjustes(ajustes) {
+    store().ajustes = { ...ajustes };
   },
 };
 

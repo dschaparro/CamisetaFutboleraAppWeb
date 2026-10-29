@@ -2,7 +2,7 @@ export const ESTADOS_PEDIDO = ["Pendiente de pago", "Alistamiento", "Enviado", "
 export type EstadoPedido = (typeof ESTADOS_PEDIDO)[number];
 
 export const MEDIOS_PAGO = {
-  pasarela: "Tarjeta / PSE (Wompi)",
+  pasarela: "Tarjeta / PSE / Nequi (Mercado Pago)",
   contraentrega: "Contra entrega",
   abono: "Abono + saldo contra entrega",
 } as const;

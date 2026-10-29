@@ -2,6 +2,7 @@ import {
   aplicarCupon,
   bannersVigentes,
   DatosInvalidosError,
+  validarAjustes,
   validarBanner,
   validarCupon,
   validarLiga,
@@ -10,7 +11,7 @@ import {
   validarUrlImagen,
   vistaPublica,
 } from "@/modules/tienda/domain/reglas";
-import { esUrlExterna, type CatalogoPublico, type Producto } from "@/modules/tienda/domain/types";
+import { esUrlExterna, type AjustesTienda, type CatalogoPublico, type Producto } from "@/modules/tienda/domain/types";
 import type { ImagenGuardada, TiendaRepo } from "@/modules/tienda/application/puertos";
 
 export class NoExisteError extends Error {
@@ -63,6 +64,16 @@ export async function borrarImagenSubida(repo: TiendaRepo, id: string) {
 
 export async function datosPanel(repo: TiendaRepo) {
   return repo.leer();
+}
+
+export async function leerAjustesTienda(repo: TiendaRepo): Promise<AjustesTienda> {
+  return repo.leerAjustes();
+}
+
+export async function guardarAjustesTienda(repo: TiendaRepo, raw: unknown): Promise<AjustesTienda> {
+  const ajustes = validarAjustes(raw);
+  await repo.guardarAjustes(ajustes);
+  return ajustes;
 }
 
 export async function guardarProducto(repo: TiendaRepo, raw: unknown, idExistente: string | null): Promise<Producto> {

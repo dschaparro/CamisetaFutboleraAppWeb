@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { IconoCamara } from "@/components/icons/pago";
 import { money } from "@/lib/money";
 import { mejorPromocion, precioConDescuento } from "@/modules/tienda/domain/reglas";
 import { CATEGORIAS, STOCK_BAJO, urlImagen, type Liga, type Producto, type Promocion } from "@/modules/tienda/domain/types";
@@ -62,7 +63,13 @@ function Imagenes({ producto, onCambio, onMensaje }: { producto: Producto; onCam
       </div>
       {producto.imagenes.length < 6 && (
         <label className={s.subir}>
-          {subiendo ? "Subiendo…" : "📷 Subir fotos (JPG, PNG o WEBP, máx. 2 MB cada una)"}
+          {subiendo ? (
+            "Subiendo…"
+          ) : (
+            <>
+              <IconoCamara size={16} /> Subir fotos (JPG, PNG o WEBP, máx. 2 MB cada una)
+            </>
+          )}
           <input type="file" accept="image/jpeg,image/png,image/webp" multiple hidden disabled={subiendo} onChange={(e) => subir(e.target.files)} />
         </label>
       )}

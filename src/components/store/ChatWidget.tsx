@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Fragment, useEffect, useRef, useState, type ReactNode } from "react";
 import IconoAsistente from "@/components/store/IconoAsistente";
+import { IconoCarrito, IconoCheck, IconoCerrar, IconoEnviar } from "@/components/icons/pago";
 import { useCart } from "@/context/CartContext";
 import { cargarCatalogo } from "@/components/store/useCatalogo";
 import { SEPARADOR_ACCIONES } from "@/modules/asistente/domain/acciones";
@@ -16,7 +17,7 @@ const CLAVE_STORAGE = "cf-chat-v1";
 const WHATSAPP = "https://wa.me/573223176175";
 
 const BIENVENIDA =
-  "¡Hola! 👋 Soy GOALIX, el asistente virtual de Camiseta Futbolera. Te ayudo a encontrar tu camiseta, con tallas, personalización, envíos y pagos. ¿Qué buscas hoy?";
+  "¡Hola! Soy GOALIX, el asistente virtual de Camiseta Futbolera. Te ayudo a encontrar tu camiseta, con tallas, personalización, envíos y pagos. ¿Qué buscas hoy?";
 
 const SUGERENCIAS = [
   "¿Qué camisetas de la Selección tienen?",
@@ -128,13 +129,13 @@ function Acciones({ acciones, onAgregar }: { acciones: AccionChat[]; onAgregar: 
           </Link>
         ) : hechas.includes(i) ? (
           <Link key={i} href="/carrito" className="chat-accion chat-accion-ok">
-            ✓ Agregada · ver carrito →
+            <IconoCheck size={14} /> Agregada · ver carrito →
           </Link>
         ) : (
           <button key={i} className="chat-accion chat-accion-carrito" onClick={async () => {
               if (await onAgregar(a)) setHechas((h) => [...h, i]);
             }}>
-            🛒 {a.etiqueta}
+            <IconoCarrito size={14} /> {a.etiqueta}
           </button>
         ),
       )}
@@ -302,7 +303,8 @@ export default function ChatWidget() {
         <IconoAsistente size={78} />
         {!abierto && (
           <span className="chat-fab-saludo" aria-hidden={!saludoAuto} role={saludoAuto ? "status" : undefined}>
-            ¡Hola! Soy <b>GOALIX</b> ⚽<br />
+            ¡Hola! Soy <b>GOALIX</b>
+            <br />
             ¿En qué puedo ayudarte hoy?
           </span>
         )}
@@ -330,7 +332,7 @@ export default function ChatWidget() {
             </button>
           )}
           <button className="chat-head-btn" onClick={() => setAbierto(false)} aria-label="Cerrar chat">
-            ✕
+            <IconoCerrar size={16} />
           </button>
         </div>
 
@@ -420,7 +422,7 @@ export default function ChatWidget() {
             </button>
           ) : (
             <button type="submit" disabled={!texto.trim()} aria-label="Enviar mensaje">
-              ➤
+              <IconoEnviar size={16} />
             </button>
           )}
         </form>

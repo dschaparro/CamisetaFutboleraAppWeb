@@ -1,10 +1,9 @@
 import assert from "node:assert/strict";
 import { afterEach, describe, it } from "node:test";
-import { pasarelaActiva } from "@/modules/pedidos/infrastructure/pasarela";
+import { modoPasarela, pasarelaActiva } from "@/modules/pedidos/infrastructure/pasarela";
 import { pasarelaSimulada } from "@/modules/pedidos/infrastructure/pasarela-simulada";
-import { pasarelaWompi } from "@/modules/pedidos/infrastructure/pasarela-wompi";
 
-const keys = ["WOMPI_USE_REAL", "WOMPI_PRIVATE_KEY", "WOMPI_PUBLIC_KEY"] as const;
+const keys = ["MERCADOPAGO_ACCESS_TOKEN", "APP_URL", "NEXT_PUBLIC_APP_URL"] as const;
 const prev: Record<string, string | undefined> = {};
 
 afterEach(() => {
@@ -24,18 +23,18 @@ function setEnv(valores: Partial<Record<(typeof keys)[number], string>>) {
   }
 }
 
-describe("pasarelaActiva", () => {
-  it("usa la simulada por defecto", () => {
-    setEnv({});
+describe("modoPasarela", () => {
+  it("es simulada sin token o sin APP_URL https", () => {
+    setEnv({ MERCADOPAGO_ACCESS_TOKEN: "TEST-123", APP_URL: "http://localhost:3000" });
+    assert.equal(modoPasarela(), "simulada");
     assert.equal(pasarelaActiva(), pasarelaSimulada);
   });
 
-  it("elige Wompi solo con USE_REAL y ambas claves", () => {
+  it("es mercadopago con token y APP_URL https", () => {
     setEnv({
-      WOMPI_USE_REAL: "true",
-      WOMPI_PRIVATE_KEY: "prv_test",
-      WOMPI_PUBLIC_KEY: "pub_test",
+      MERCADOPAGO_ACCESS_TOKEN: "TEST-APP-USR-xxx",
+      APP_URL: "https://camiseta.example.com",
     });
-    assert.equal(pasarelaActiva(), pasarelaWompi);
+    assert.equal(modoPasarela(), "mercadopago");
   });
 });

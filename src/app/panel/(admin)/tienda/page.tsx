@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import type { Banner, Cupon, Liga, Producto, Promocion } from "@/modules/tienda/domain/types";
+import Ajustes from "./Ajustes";
 import Banners from "./Banners";
 import Cupones from "./Cupones";
 import Ligas from "./Ligas";
@@ -17,6 +18,7 @@ const PESTANAS = [
   { id: "ofertas", label: "Ofertas" },
   { id: "cupones", label: "Cupones" },
   { id: "banners", label: "Banners" },
+  { id: "ajustes", label: "Ajustes" },
 ] as const;
 type Pestana = (typeof PESTANAS)[number]["id"];
 
@@ -41,12 +43,12 @@ export default function TiendaPage() {
     recargar();
   }, [recargar]);
 
-  function mensaje(ok: boolean, texto: string) {
+  const mensaje = useCallback((ok: boolean, texto: string) => {
     setAviso({ ok, texto });
     setTimeout(() => setAviso((a) => (a?.texto === texto ? null : a)), 5000);
-  }
+  }, []);
 
-  const conteo: Record<Pestana, number> = {
+  const conteo: Record<Exclude<Pestana, "ajustes">, number> = {
     productos: datos?.productos.length ?? 0,
     ligas: datos?.ligas.length ?? 0,
     ofertas: datos?.promociones.length ?? 0,
@@ -59,7 +61,7 @@ export default function TiendaPage() {
       <div className="admin-topbar">
         <div>
           <h1>Tienda online</h1>
-          <p>Productos, fotos, precios, ligas, ofertas, cupones y banners. Los cambios se ven al instante en la tienda.</p>
+          <p>Productos, fotos, precios, ligas, ofertas, cupones, banners y ajustes. Los cambios se ven al instante en la tienda.</p>
         </div>
         <a className="btn btn-outline btn-sm" href="/" target="_blank" rel="noopener">
           Ver tienda ↗
@@ -77,12 +79,14 @@ export default function TiendaPage() {
         {PESTANAS.map((p) => (
           <button key={p.id} role="tab" aria-selected={pestana === p.id} className={pestana === p.id ? s.tabActiva : ""} onClick={() => setPestana(p.id)}>
             {p.label}
-            <span>{conteo[p.id]}</span>
+            {p.id !== "ajustes" ? <span>{conteo[p.id]}</span> : null}
           </button>
         ))}
       </div>
 
-      {!datos ? (
+      {pestana === "ajustes" ? (
+        <Ajustes mensaje={mensaje} />
+      ) : !datos ? (
         !error && <div className={s.vacio}>Cargando…</div>
       ) : (
         <>

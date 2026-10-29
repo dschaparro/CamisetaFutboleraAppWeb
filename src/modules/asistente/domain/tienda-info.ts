@@ -23,7 +23,7 @@ Cómo comprar:
 - El carrito está en /carrito y el pago en /checkout.
 
 Medios de pago:
-- Pago en línea con tarjeta, PSE o Nequi (pasarela Wompi).
+- Pago en línea con tarjeta, PSE o Nequi (Mercado Pago Checkout Pro).
 - Pago contra entrega, en efectivo o transferencia al recibir (según cobertura de la mensajería).
 - Abono en línea para confirmar un pedido personalizado y el saldo contra entrega.
 

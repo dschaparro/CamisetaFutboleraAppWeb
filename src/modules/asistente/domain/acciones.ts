@@ -16,6 +16,12 @@ export const DESTINOS: Record<string, string> = {
   "/catalogo/selecciones": "Ver Selecciones",
   "/carrito": "Ver mi carrito",
   "/checkout": "Finalizar compra",
+  "/cuenta?seccion=pedidos": "Mis pedidos",
+  "/cuenta?seccion=datos": "Mis datos",
+  "/cuenta?seccion=direcciones": "Mis direcciones",
+  "/cuenta?seccion=pagos": "Mis formas de pago",
+  "/cuenta?seccion=seguridad": "Cambiar contraseña",
+  // Hash legacy (por si el modelo aún lo sugiere)
   "/cuenta#pedidos": "Mis pedidos",
   "/cuenta#datos": "Mis datos",
   "/cuenta#direcciones": "Mis direcciones",

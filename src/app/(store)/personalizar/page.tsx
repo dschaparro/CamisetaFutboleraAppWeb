@@ -22,11 +22,16 @@ import {
   type EstadoCamiseta,
 } from "@/lib/personalizacion";
 import { dibujarCamiseta, precargar, type Lado } from "@/components/store/camiseta-dibujo";
+import LoaderMarca from "@/components/store/LoaderMarca";
 import { urlImagen } from "@/modules/tienda/domain/types";
 
 const Camiseta3D = dynamic(() => import("@/components/store/Camiseta3D"), {
   ssr: false,
-  loading: () => <div className="c3d c3d-carga">Cargando camiseta…</div>,
+  loading: () => (
+    <div className="c3d c3d-carga">
+      <LoaderMarca variante="bloque" titulo="Cargando camiseta" detalle="Preparando el visor 3D…" />
+    </div>
+  ),
 });
 
 const TALLAS = ["S", "M", "L", "XL"];

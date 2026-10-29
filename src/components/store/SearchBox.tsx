@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useRef, useState } from "react";
+import { IconoBuscar } from "@/components/icons/pago";
 import { money } from "@/lib/money";
 import { cargarCatalogo } from "@/components/store/useCatalogo";
 import { urlImagen, type ProductoPublico } from "@/modules/tienda/domain/types";
@@ -65,7 +66,9 @@ export default function SearchBox({ inputRef }: { inputRef?: React.RefObject<HTM
   const mostrar = abierto && texto.trim().length >= 2;
   return (
     <form className="store-search" role="search" onSubmit={enviar} ref={caja}>
-      <span className="store-search-ic" aria-hidden="true">⌕</span>
+      <span className="store-search-ic" aria-hidden="true">
+        <IconoBuscar size={16} />
+      </span>
       <input
         ref={inputRef}
         type="search"

@@ -4,6 +4,7 @@ import Link from "next/link";
 import { use, useMemo, useState } from "react";
 import ProductCard, { TarjetasCargando } from "@/components/store/ProductCard";
 import { useCatalogo } from "@/components/store/useCatalogo";
+import { IconoBuscar } from "@/components/icons/pago";
 
 type Orden = "relevancia" | "menor" | "mayor";
 
@@ -92,7 +93,8 @@ export default function LigaPage({
       <div className="wrap">
         <div className="filters-bar" style={{ marginTop: 22 }}>
           <div className="search">
-            🔎 <input placeholder="Buscar por club o camiseta…" value={query} onChange={(e) => setQuery(e.target.value)} aria-label="Buscar" />
+            <IconoBuscar size={16} />
+            <input placeholder="Buscar por club o camiseta…" value={query} onChange={(e) => setQuery(e.target.value)} aria-label="Buscar" />
           </div>
           <button className={`chip${soloOfertas ? " active" : ""}`} onClick={() => setSoloOfertas((v) => !v)}>
             En oferta

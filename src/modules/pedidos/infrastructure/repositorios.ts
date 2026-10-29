@@ -1,13 +1,15 @@
 import { PRODUCTS } from "@/data/products";
 import { usarSimulacion } from "@/lib/modo-datos";
-import type { PedidosRepo } from "@/modules/pedidos/application/puertos";
+import type { CarritoRepo, PedidosRepo } from "@/modules/pedidos/application/puertos";
+import { carritoPg } from "@/modules/pedidos/infrastructure/carrito-pg";
 import { pedidosPg } from "@/modules/pedidos/infrastructure/pedidos-pg";
+import type { LineaCarrito } from "@/modules/pedidos/domain/carrito";
 import type { Pedido, ProductoVenta } from "@/modules/pedidos/domain/types";
 import { catalogoVendible } from "@/modules/tienda/application/tienda";
 import { tiendaRepo } from "@/modules/tienda/infrastructure/repositorio";
 import { CLIENTE_DEMO_ID } from "@/modules/identidad/infrastructure/simulacion";
 
-export type { PedidosRepo };
+export type { CarritoRepo, PedidosRepo };
 
 /** Catálogo con precios para armar pedidos (la tabla productos de la tienda). */
 export async function catalogoVenta(): Promise<ProductoVenta[]> {
@@ -41,14 +43,14 @@ function sembrar(): Pedido[] {
   return [
     demo({
       id: "CF-00842", clienteId: CLIENTE_DEMO_ID, contacto: LAURA, ...BOGOTA, creadoEn: "2026-10-03T16:20:00.000Z",
-      estado: "Alistamiento", medioPago: "Tarjeta / PSE (Wompi)", estadoPago: "Pagado",
+      estado: "Alistamiento", medioPago: "Tarjeta / PSE / Nequi (Mercado Pago)", estadoPago: "Pagado",
       historial: [h("Pendiente de pago", "2026-10-03T16:20:00.000Z"), h("Alistamiento", "2026-10-03T16:24:00.000Z", "Pago aprobado")],
       items: [item("RM-27T", "M", 2, '"RAMÍREZ" #7'), item("SEL-27L", "S", 1)],
     }),
     demo({
       id: "CF-00841", clienteId: null, contacto: { nombre: "Andrés Pérez", email: "andres@correo.co", telefono: "3157778899" },
       ciudad: "Medellín", direccion: "Cl 10 # 43-20", creadoEn: "2026-10-02T21:10:00.000Z",
-      estado: "Enviado", medioPago: "Tarjeta / PSE (Wompi)", estadoPago: "Pagado", guia: "SERVI-4519833",
+      estado: "Enviado", medioPago: "Tarjeta / PSE / Nequi (Mercado Pago)", estadoPago: "Pagado", guia: "SERVI-4519833",
       historial: [h("Pendiente de pago", "2026-10-02T21:10:00.000Z"), h("Alistamiento", "2026-10-02T21:11:00.000Z"), h("Enviado", "2026-10-03T15:00:00.000Z")],
       items: [item("PSG-27T", "L", 1)],
     }),
@@ -69,7 +71,7 @@ function sembrar(): Pedido[] {
     demo({
       id: "CF-00837", clienteId: null, contacto: { nombre: "María Gómez", email: "maria@correo.co", telefono: "3112223344" },
       ciudad: "Bogotá", direccion: "Cl 80 # 15-12", creadoEn: "2026-09-26T12:30:00.000Z",
-      estado: "Pendiente de pago", medioPago: "Tarjeta / PSE (Wompi)", estadoPago: "Pendiente",
+      estado: "Pendiente de pago", medioPago: "Tarjeta / PSE / Nequi (Mercado Pago)", estadoPago: "Pendiente",
       historial: [h("Pendiente de pago", "2026-09-26T12:30:00.000Z"), h("Pendiente de pago", "2026-09-26T12:32:00.000Z", "Pago rechazado")],
       items: [item("FCB-27V", "M", 2)],
     }),
@@ -81,7 +83,7 @@ function sembrar(): Pedido[] {
     }),
     demo({
       id: "CF-00765", clienteId: CLIENTE_DEMO_ID, contacto: LAURA, ...BOGOTA, creadoEn: "2026-06-02T13:40:00.000Z",
-      estado: "Entregado", medioPago: "Tarjeta / PSE (Wompi)", estadoPago: "Pagado", guia: "SERVI-3920114",
+      estado: "Entregado", medioPago: "Tarjeta / PSE / Nequi (Mercado Pago)", estadoPago: "Pagado", guia: "SERVI-3920114",
       historial: [h("Pendiente de pago", "2026-06-02T13:40:00.000Z"), h("Alistamiento", "2026-06-02T13:41:00.000Z"), h("Enviado", "2026-06-03T10:15:00.000Z"), h("Entregado", "2026-06-04T12:00:00.000Z")],
       items: [item("BAY-99R", "L", 1)],
     }),
@@ -122,3 +124,23 @@ export function pedidosRepo(): PedidosRepo {
 
 /** Pedidos de ejemplo, para cargarlos en la base (script db:sembrar). */
 export const pedidosDeEjemplo = sembrar;
+
+const globalCarrito = globalThis as typeof globalThis & { __cfSimCarrito?: Map<string, LineaCarrito[]> };
+function carritoStore(): Map<string, LineaCarrito[]> {
+  globalCarrito.__cfSimCarrito ??= new Map();
+  return globalCarrito.__cfSimCarrito;
+}
+
+const carritoSimulado: CarritoRepo = {
+  async obtener(clienteId) {
+    return [...(carritoStore().get(clienteId) ?? [])];
+  },
+  async reemplazar(clienteId, lineas) {
+    carritoStore().set(clienteId, [...lineas]);
+  },
+};
+
+/** Carrito por cuenta: simulación o Postgres. */
+export function carritoRepo(): CarritoRepo {
+  return usarSimulacion() ? carritoSimulado : carritoPg;
+}

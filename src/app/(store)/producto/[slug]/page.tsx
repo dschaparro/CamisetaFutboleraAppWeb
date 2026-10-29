@@ -4,6 +4,7 @@ import { use, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { EscudoImg, fondoEscudo, ImagenProducto } from "@/components/store/ProductCard";
+import LoaderMarca from "@/components/store/LoaderMarca";
 import { useCatalogo } from "@/components/store/useCatalogo";
 import { useCart } from "@/context/CartContext";
 import { money } from "@/lib/money";
@@ -32,8 +33,8 @@ export default function ProductPage({ params }: { params: Promise<{ slug: string
 
   if (!catalogo) {
     return (
-      <div className="wrap" style={{ padding: "60px 0", textAlign: "center" }}>
-        <span className="spinner" style={{ display: "inline-block" }} /> Cargando camiseta…
+      <div className="wrap">
+        <LoaderMarca titulo="Cargando camiseta" detalle="Traemos fotos, tallas y precio del catálogo." />
       </div>
     );
   }

@@ -31,8 +31,8 @@ export async function proxy(request: NextRequest) {
 
   if (esApiPublica(pathname)) return NextResponse.next();
 
-  // Mi cuenta y el pago exigen sesión de cliente: para comprar hay que ingresar o registrarse.
-  if (pathname === "/cuenta" || pathname.startsWith("/cuenta/") || pathname === "/checkout") {
+  // «Mi cuenta» exige sesión de cliente. El checkout admite invitado (la UI ofrece ingresar opcional).
+  if (pathname === "/cuenta" || pathname.startsWith("/cuenta/")) {
     const token = request.cookies.get(CLIENTE_COOKIE)?.value;
     const cliente = secret && token ? await verifyClienteToken(token, secret) : null;
     return cliente ? NextResponse.next() : redirigir(request, "/ingresar", pathname);
@@ -74,5 +74,5 @@ export async function proxy(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/panel/:path*", "/api/:path*", "/cuenta", "/cuenta/:path*", "/checkout"],
+  matcher: ["/panel/:path*", "/api/:path*", "/cuenta", "/cuenta/:path*"],
 };

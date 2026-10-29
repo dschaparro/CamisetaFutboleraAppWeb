@@ -11,11 +11,16 @@ export async function crearPedido(
     clienteId: string | null;
     ahora: Date;
     claveAcceso: string;
+    maxCantidad?: number;
+    maxItems?: number;
     /** Valida el cupón con el subtotal real (lanza si no aplica) y devuelve el descuento. */
     cupon?: (subtotal: number) => number | Promise<number>;
   },
 ): Promise<Pedido> {
-  const datos = validarPedidoNuevo(raw, deps.catalogo);
+  const datos = validarPedidoNuevo(raw, deps.catalogo, {
+    maxCantidad: deps.maxCantidad,
+    maxItems: deps.maxItems,
+  });
   const subtotal = datos.items.reduce((s, it) => s + it.precioUnitario * it.cantidad, 0);
   const descuento = deps.cupon ? await deps.cupon(subtotal) : 0;
   const id = siguienteId((await deps.repo.listarTodos()).map((p) => p.id));

@@ -4,11 +4,13 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState, type FormEvent } from "react";
 import s from "@/components/store/cuenta.module.css";
+import { useCart } from "@/context/CartContext";
 
 type Campos = Partial<Record<"nombre" | "email" | "telefono" | "password" | "confirmar", string>>;
 
 export default function RegistroPage() {
   const router = useRouter();
+  const { enlazarTrasAuth } = useCart();
   const [form, setForm] = useState({ nombre: "", email: "", telefono: "", password: "", confirmar: "" });
   const [campos, setCampos] = useState<Campos>({});
   const [error, setError] = useState<string | null>(null);
@@ -39,6 +41,7 @@ export default function RegistroPage() {
         if (!data.error?.campos) setError(data.error?.message ?? "No se pudo crear la cuenta");
         return;
       }
+      await enlazarTrasAuth();
       // Si venía del pago, vuelve al pago; si no, a su cuenta.
       const v = new URLSearchParams(window.location.search).get("volver");
       router.push(v && v.startsWith("/") && !v.startsWith("//") && !v.startsWith("/panel") ? v : "/cuenta");
