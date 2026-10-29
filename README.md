@@ -106,12 +106,12 @@ Errores de API: `{ error: { code, message, campos? } }` vía `@/lib/http`.
 
 ## Qué falta (producto / ops)
 
-Pulido de arquitectura y UX de tienda/panel ya está en el código. Pendiente de producto:
+Pulido de arquitectura y UX ya está. Scaffolds y checklist: [`docs/ops-producto.md`](docs/ops-producto.md).
 
-1. **Wompi** — adaptador real detrás de `Pasarela`
-2. **Storage** — imágenes fuera de bytea si aplica
-3. **Correo** — pedido / factura
-4. **Vercel** — despliegue + variables de entorno
+1. **Wompi** — `pasarelaActiva()` / completar transacciones + webhook
+2. **Storage** — stub `storage-supabase` + `SUPABASE_STORAGE_BUCKET`
+3. **Correo** — puerto `NotificadorPedido` + stub
+4. **Vercel** — `vercel.json` + variables de producción
 
 ## Créditos
 

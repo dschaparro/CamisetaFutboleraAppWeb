@@ -56,10 +56,12 @@ Flujos sugeridos en defensa:
 
 ## Pendiente de producto (no bloquea la arquitectura)
 
-- [ ] Adaptador Wompi real  
-- [ ] Storage de imágenes  
-- [ ] Correo transaccional  
-- [ ] Despliegue Vercel  
+Scaffolds y variables: [`ops-producto.md`](ops-producto.md).
+
+- [ ] Completar API/webhook Wompi (`pasarela-wompi` + `WOMPI_USE_REAL`)  
+- [ ] Cablear Supabase Storage (`storage-supabase` + bucket)  
+- [ ] Adaptador de correo real (`NotificadorPedido`)  
+- [ ] Despliegue Vercel con secretos de producción  
 
 ## Qué no está en alcance
 
