@@ -67,11 +67,6 @@ export async function POST(request: Request) {
     const status = estadoHttp(err);
     const detalle = err instanceof Error ? err.message : "error desconocido";
     console.error("[informes] fallo al llamar a la API:", status ?? "", detalle);
-    // TEMPORAL (solo dev): cuerpo del error y request-id de Anthropic para depurar.
-    if (process.env.NODE_ENV !== "production" && typeof err === "object" && err !== null) {
-      const { error: cuerpo, requestID } = err as { error?: unknown; requestID?: unknown };
-      console.error("[informes] detalle API:", JSON.stringify({ requestID, cuerpo }, null, 2));
-    }
 
     if (status === 401 || status === 403) {
       return error(503, "IA_CREDENCIALES", "La API key de Anthropic no es válida o no tiene permisos.");
