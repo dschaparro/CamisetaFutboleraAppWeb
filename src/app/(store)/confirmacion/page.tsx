@@ -29,12 +29,19 @@ export default function ConfirmationPage({ searchParams }: { searchParams: Promi
 
   if (!id || error) {
     return (
-      <div className="wrap" style={{ padding: "60px 0", textAlign: "center" }}>
-        <h2 style={{ fontFamily: "var(--font-body)", fontWeight: 800, textTransform: "none" }}>{error ?? "No hay un pedido para mostrar"}</h2>
-        <p style={{ color: "var(--ink-mute)", margin: "8px 0 18px" }}>Si tienes cuenta, revisa tus pedidos en «Mis pedidos».</p>
-        <Link className="btn btn-gold" href="/cuenta">
-          Mis pedidos
-        </Link>
+      <div className="wrap cart-page">
+        <div className="cart-vacio">
+          <h2>{error ?? "No hay un pedido para mostrar"}</h2>
+          <p>Si tienes cuenta, revisa tus pedidos en «Mis pedidos».</p>
+          <div className="cart-vacio-acciones">
+            <Link className="btn btn-gold" href="/cuenta">
+              Mis pedidos
+            </Link>
+            <Link className="btn btn-outline" href="/catalogo">
+              Seguir comprando
+            </Link>
+          </div>
+        </div>
       </div>
     );
   }

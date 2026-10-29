@@ -912,6 +912,15 @@ button.account-btn{background:transparent;cursor:pointer;}
 .cart-resumen h2{font-family:var(--font-body);font-weight:800;font-size:.95rem;margin:0 0 10px;text-transform:none;}
 .cart-nota{font-size:.76rem;color:var(--ink-mute);margin:12px 0 0;line-height:1.45;}
 .cart-seguir{margin-top:14px;padding-left:0;}
+.checkout-page{padding-bottom:48px;}
+.checkout-page .page-head{padding-bottom:0;}
+.checkout-resumen{padding:22px;}
+.checkout-resumen h2{font-family:var(--font-body);font-weight:800;font-size:.95rem;margin:0 0 10px;text-transform:none;}
+@media (max-width:900px){
+  .checkout-layout{display:flex;flex-direction:column;gap:20px;padding-bottom:calc(88px + env(safe-area-inset-bottom));}
+  .checkout-resumen{order:-1;position:sticky;top:72px;z-index:5;}
+  .checkout-form .btn-block{position:sticky;bottom:calc(12px + env(safe-area-inset-bottom));z-index:6;box-shadow:var(--shadow-md);}
+}
 @media (hover:none){
   .product-media::after{display:none;}
   .product-card:hover{transform:none;box-shadow:none;}

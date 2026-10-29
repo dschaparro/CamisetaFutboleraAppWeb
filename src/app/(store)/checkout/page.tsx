@@ -126,12 +126,20 @@ export default function CheckoutPage() {
 
   if (items.length === 0) {
     return (
-      <div className="wrap" style={{ padding: "60px 0", textAlign: "center" }}>
-        <h2 style={{ fontFamily: "var(--font-body)", fontWeight: 800, textTransform: "none" }}>Tu carrito está vacío</h2>
-        <p style={{ color: "var(--ink-mute)", margin: "8px 0 18px" }}>Agrega una camiseta para continuar con la compra.</p>
-        <Link className="btn btn-gold" href="/">
-          Ver camisetas
-        </Link>
+      <div className="wrap cart-page">
+        <header className="page-head">
+          <p className="eyebrow">Pedido</p>
+          <h1>Checkout</h1>
+        </header>
+        <div className="cart-vacio">
+          <h2>Tu carrito está vacío</h2>
+          <p>Agrega una camiseta para continuar con la compra.</p>
+          <div className="cart-vacio-acciones">
+            <Link className="btn btn-gold" href="/catalogo">
+              Ir al catálogo
+            </Link>
+          </div>
+        </div>
       </div>
     );
   }
@@ -147,13 +155,18 @@ export default function CheckoutPage() {
         style={campos[k] ? { borderColor: "var(--danger)" } : undefined}
         {...extra}
       />
-      {campos[k] && <small style={{ color: "var(--danger)", fontSize: ".75rem" }}>{campos[k]}</small>}
+      {campos[k] && <span className="field-error">{campos[k]}</span>}
     </div>
   );
 
   return (
-    <div className="wrap">
-      <div className="checkout-steps" style={{ marginTop: 26 }}>
+    <div className="wrap checkout-page">
+      <header className="page-head">
+        <p className="eyebrow">Pedido</p>
+        <h1>Datos y pago</h1>
+        <p className="section-note">Revisa el resumen; el cupón y el envío se confirman aquí.</p>
+      </header>
+      <div className="checkout-steps">
         <div className="step active"><span className="num">1</span> Carrito</div>
         <div className="sep" />
         <div className="step active"><span className="num">2</span> Datos y pago</div>
@@ -161,7 +174,7 @@ export default function CheckoutPage() {
         <div className="step"><span className="num">3</span> Confirmación</div>
       </div>
       <form className="checkout-layout" onSubmit={confirmar} noValidate>
-        <div>
+        <div className="checkout-form">
           <div className="guest-banner">
             {cliente ? (
               <div>
@@ -238,8 +251,8 @@ export default function CheckoutPage() {
           </p>
         </div>
 
-        <div className="card summary-box" style={{ padding: 22 }}>
-          <h3 style={{ fontFamily: "var(--font-body)", fontWeight: 800, fontSize: ".95rem", marginBottom: 10 }}>Resumen del pedido</h3>
+        <aside className="card summary-box checkout-resumen" aria-label="Resumen del pedido">
+          <h2>Resumen del pedido</h2>
           <div style={{ fontSize: ".83rem", color: "var(--ink-soft)", display: "flex", flexDirection: "column", gap: 6 }}>
             {items.map((i) => (
               <div key={i.id} style={{ display: "flex", justifyContent: "space-between", gap: 10 }}>
@@ -289,7 +302,7 @@ export default function CheckoutPage() {
           {pago === "abono" && (
             <div className="summary-row"><span>Pagas hoy (50 %)</span><span className="tabular">{money(Math.round(total / 2))}</span></div>
           )}
-        </div>
+        </aside>
       </form>
     </div>
   );
