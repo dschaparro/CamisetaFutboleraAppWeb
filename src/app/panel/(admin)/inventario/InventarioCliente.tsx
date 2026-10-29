@@ -93,8 +93,15 @@ export default function InventarioCliente() {
             </tr>
           </thead>
           <tbody>
-            {!datos && !error && <tr><td colSpan={8} style={{ color: "var(--ink-mute)" }}>Cargando inventario…</td></tr>}
-            {datos && filas.length === 0 && <tr><td colSpan={8} style={{ color: "var(--ink-mute)" }}>No hay productos con esos filtros.</td></tr>}
+            {!datos && !error && <tr><td colSpan={8} className="panel-vacio">Cargando inventario…</td></tr>}
+            {datos && filas.length === 0 && (
+              <tr>
+                <td colSpan={8} className="panel-vacio">
+                  <b>Sin resultados</b>
+                  <span>No hay productos con esos filtros. Prueba otra búsqueda o limpia el filtro.</span>
+                </td>
+              </tr>
+            )}
             {filas.map((i) => (
               <tr key={i.id}>
                 <td><b>{i.nombre}</b></td>

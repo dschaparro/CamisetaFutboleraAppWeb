@@ -291,8 +291,9 @@ export default function PedidosPage() {
             )}
             {pedidos !== null && visibles.length === 0 && (
               <tr>
-                <td colSpan={7} className={s.vacio}>
-                  No hay pedidos con ese filtro.
+                <td colSpan={7} className={`${s.vacio} panel-vacio`}>
+                  <b>Sin pedidos</b>
+                  <span>No hay pedidos con ese filtro. Prueba otro estado o limpia la búsqueda.</span>
                 </td>
               </tr>
             )}

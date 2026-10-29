@@ -57,7 +57,7 @@ export function Campo({ label, error, hint, ancho, children }: CampoProps) {
     <label className={`field ${s.campo} ${ancho ? s.ancho : ""} ${error ? s.campoError : ""}`}>
       <span className={s.etiqueta}>{label}</span>
       {children}
-      {error ? <small className={s.error}>{error}</small> : hint ? <small className={s.hint}>{hint}</small> : null}
+      {error ? <span className="field-error">{error}</span> : hint ? <small className={s.hint}>{hint}</small> : null}
     </label>
   );
 }
@@ -106,7 +106,11 @@ export function Cajon({
           }}
           noValidate
         >
-          {error && <div className={s.avisoMal}>{error}</div>}
+          {error && (
+            <p className={`form-error ${s.avisoMal}`} role="alert">
+              {error}
+            </p>
+          )}
           <div className={s.formGrid}>{children}</div>
           {extra}
           <div className={s.cajonPie}>
