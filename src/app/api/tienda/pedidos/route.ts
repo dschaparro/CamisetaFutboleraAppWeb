@@ -3,14 +3,13 @@ import { NextResponse } from "next/server";
 import { PendienteDeBaseDeDatosError } from "@/lib/modo-datos";
 import { allowAttempt } from "@/modules/identidad/infrastructure/rate-limit";
 import { clientKey, errorJson, sesionCliente } from "@/modules/identidad/infrastructure/sesiones";
-import { crearPedido } from "@/modules/pedidos/application/pedidos";
+import { finalizarVenta } from "@/modules/pedidos/application/finalizar-venta";
 import { PedidoInvalidoError } from "@/modules/pedidos/domain/pedido";
-import { registrarVenta, validarCuponPara } from "@/modules/tienda/application/tienda";
-import { CuponInvalidoError } from "@/modules/tienda/domain/reglas";
-import { registrarFaltantes } from "@/modules/operacion/infrastructure/lista-compras-pg";
 import { catalogoVenta, pedidosRepo } from "@/modules/pedidos/infrastructure/repositorios";
+import { listaComprasRepo } from "@/modules/operacion/infrastructure/repos";
+import { CuponInvalidoError } from "@/modules/tienda/domain/reglas";
+import { tiendaRepo } from "@/modules/tienda/infrastructure/repositorio";
 
-/** Checkout: crea el pedido (con o sin cuenta). Devuelve a dónde seguir: pasarela o confirmación. */
 export async function POST(request: Request) {
   if (!allowAttempt(`pedido:${clientKey(request)}`, 10, 10 * 60 * 1000)) {
     return errorJson(429, "RATE_LIMITED", "Demasiados pedidos seguidos. Espera unos minutos.");
@@ -22,30 +21,24 @@ export async function POST(request: Request) {
     return errorJson(400, "VALIDATION_ERROR", "Cuerpo JSON inválido");
   }
 
-  // Para comprar hay que tener cuenta: así el pedido queda en «Mis pedidos».
   const sesion = await sesionCliente(request);
   if (!sesion) return errorJson(401, "UNAUTHENTICATED", "Ingresa o crea tu cuenta para finalizar la compra.");
-  const codigoCupon = typeof body === "object" && body !== null && typeof (body as { cupon?: unknown }).cupon === "string" ? (body as { cupon: string }).cupon.trim() : "";
-  let cuponId: string | null = null;
+  const codigoCupon =
+    typeof body === "object" && body !== null && typeof (body as { cupon?: unknown }).cupon === "string"
+      ? (body as { cupon: string }).cupon.trim()
+      : "";
+
   try {
-    const pedido = await crearPedido(body, {
-      repo: pedidosRepo(),
+    const pedido = await finalizarVenta(body, codigoCupon, {
+      pedidos: pedidosRepo(),
+      tienda: tiendaRepo(),
+      listaCompras: listaComprasRepo,
       catalogo: await catalogoVenta(),
       clienteId: sesion.sub,
       ahora: new Date(),
       claveAcceso: randomBytes(16).toString("hex"),
-      cupon: codigoCupon
-        ? async (subtotal) => {
-            const r = await validarCuponPara(codigoCupon, subtotal);
-            cuponId = r.cupon.id;
-            return r.descuento;
-          }
-        : undefined,
+      onFaltantesError: (e) => console.error("[lista-compras]", e),
     });
-    // Lo que no alcance con el stock va a la lista de compras (antes de descontar).
-    await registrarFaltantes(pedido).catch((e) => console.error("[lista-compras]", e));
-    // Descuenta stock y suma el uso del cupón.
-    await registrarVenta(pedido.items, cuponId);
     const q = `pedido=${encodeURIComponent(pedido.id)}&k=${pedido.claveAcceso}`;
     const siguiente =
       pedido.estado === "Pendiente de pago" ? `/pago/${encodeURIComponent(pedido.id)}?k=${pedido.claveAcceso}` : `/confirmacion?${q}`;

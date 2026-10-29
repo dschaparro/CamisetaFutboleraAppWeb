@@ -241,7 +241,7 @@ export default function Productos({
             <input value={String(f.iniciales)} maxLength={4} onChange={(e) => ed.set("iniciales")(e.target.value.toUpperCase())} />
           </Campo>
           <Campo label="Nombre" error={ed.campos.nombre} ancho>
-            <input value={String(f.nombre)} placeholder="Camiseta Juventus Titular 2027" onChange={(e) => ed.set("nombre")(e.target.value)} />
+            <input value={String(f.nombre)} placeholder="Camiseta Juventus Titular 2026/27" onChange={(e) => ed.set("nombre")(e.target.value)} />
           </Campo>
           <Campo label="Club o selección" error={ed.campos.club}>
             <input value={String(f.club)} onChange={(e) => ed.set("club")(e.target.value)} />

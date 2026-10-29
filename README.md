@@ -63,38 +63,34 @@ npm run start
 
 ```
 src/
-  app/
-    (store)/          → Tienda (route group; no cambia la URL)
-    panel/
-      login/          → Acceso al backoffice
-      (admin)/        → Dashboard, inventario, pedidos… (con Sidebar)
-    globals.css
-  modules/identidad/  → domain / application / infrastructure
+  app/                 → UI + Route Handlers (composición; llaman application)
+  modules/
+    identidad/         → panel, clientes, JWT
+    tienda/            → catálogo, cupones, banners
+    pedidos/           → checkout, venta manual, pasarela
+    operacion/         → inventario, lista de compras, reportes
+    asistente/         → chat + informes / Claude
   components/
   context/
-  data/               → Mocks de catálogo/pedidos hasta persistir el módulo
+  data/                → mocks residuales donde aún aplique
   lib/
-    money.ts
-    supabaseClient.ts → getSupabaseConfig() (solo servidor)
-    claude.ts         → stub
-tests/modules/identidad/
+tests/modules/<modulo>/  → espejo de domain/application/infrastructure
+docs/ADR-modulos.md      → mapa tesis ↔ módulos vivos
 ```
 
-Los módulos de negocio viven en `src/modules/<modulo>/`. `src/app` solo pinta y expone Route Handlers.
+Los módulos viven en `src/modules/<modulo>/{domain,application,infrastructure}`.
+`src/app` solo pinta y expone Route Handlers: llama casos de uso e inyecta repos de infrastructure.
 
 ## Qué falta para que esto sea la app real (no solo el frontend)
 
-Login JWT del panel y Postgres (Data API) ya están conectados (`identidad`).
-Falta persistir el resto de módulos (catálogo, pedidos, Wompi, Claude) y desplegar.
+Hexagonal limpio y persistencia Postgres en los módulos vivos ya están en marcha.
+Pendiente de producto/ops:
 
-Según el **Tablero de Sprints** (Sprint 0), lo que sigue:
-
-1. **GitHub** — confirmar acceso de los tres integrantes.
-2. **Supabase** — migrar el modelo de datos (Diagrama de Clases) y reemplazar `src/data/*.ts` módulo a módulo, copiando `src/modules/identidad`.
-3. **API de Claude** — Route Handlers (`/api/asistente`, `/api/informes`) cuando toque el módulo `ia`.
-4. **Wompi** — sandbox en checkout (hoy simula la confirmación).
-5. **Correo transaccional** — factura y notificaciones.
-6. **Vercel** — despliegue.
+1. **Wompi** — pasarela real (hoy simulada en `pedidos/infrastructure`).
+2. **API de Claude** — completar integración en `asistente`.
+3. **Correo transaccional** — factura y notificaciones.
+4. **Vercel** — despliegue.
+5. **Storage** — imágenes fuera de Postgres si hace falta.
 
 ## Créditos
 

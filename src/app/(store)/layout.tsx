@@ -7,7 +7,7 @@ export default function StoreLayout({ children }: { children: React.ReactNode })
   return (
     <CartProvider>
       <Header />
-      {children}
+      <main id="contenido-principal">{children}</main>
       <Footer />
       <ChatWidget />
     </CartProvider>

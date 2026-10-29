@@ -1,9 +1,8 @@
-import { validarCambiosInventario } from "@/modules/operacion/domain/operacion";
+import { actualizarProductoInventario } from "@/modules/operacion/application/inventario";
 import { responder, leerJson } from "@/modules/operacion/infrastructure/http";
-import { actualizarInventario } from "@/modules/operacion/infrastructure/inventario-pg";
+import { inventarioRepo } from "@/modules/operacion/infrastructure/repos";
 
-/** Corrige costo, stock o proveedor de un producto. */
 export async function PATCH(request: Request, { params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
-  return responder(async () => ({ producto: await actualizarInventario(id, validarCambiosInventario(await leerJson(request))) }));
+  return responder(async () => actualizarProductoInventario(id, await leerJson(request), inventarioRepo));
 }

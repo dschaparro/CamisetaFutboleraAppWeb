@@ -2,10 +2,38 @@
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useId, useRef, useState } from "react";
 import { useCart } from "@/context/CartContext";
 import ThemeToggle from "@/components/ThemeToggle";
 import SearchBox from "@/components/store/SearchBox";
+
+const NAV = [
+  { href: "/", label: "Inicio", match: (p: string) => p === "/" },
+  { href: "/catalogo", label: "Catálogo", match: (p: string) => p.startsWith("/catalogo") },
+  { href: "/catalogo/todas?ofertas=1", label: "Ofertas", match: () => false },
+  { href: "/personalizar", label: "Personalizar", match: (p: string) => p.startsWith("/personalizar") },
+  { href: "/cuenta", label: "Cuenta", match: (p: string) => p.startsWith("/cuenta") },
+] as const;
+
+function IconoBuscar() {
+  return (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <circle cx="11" cy="11" r="7" stroke="currentColor" strokeWidth="2" />
+      <path d="M20 20l-3.5-3.5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+    </svg>
+  );
+}
+
+function IconoCarrito() {
+  return (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <path d="M6 6h15l-1.5 9h-12z" stroke="currentColor" strokeWidth="2" strokeLinejoin="round" />
+      <path d="M6 6l-1-3H2" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+      <circle cx="9" cy="20" r="1.5" fill="currentColor" />
+      <circle cx="18" cy="20" r="1.5" fill="currentColor" />
+    </svg>
+  );
+}
 
 export default function Header() {
   const { count } = useCart();
@@ -13,16 +41,22 @@ export default function Header() {
   const router = useRouter();
   const [cliente, setCliente] = useState<{ nombre: string } | null>(null);
   const [menu, setMenu] = useState(false);
+  const [navAbierta, setNavAbierta] = useState(false);
+  const [buscaAbierta, setBuscaAbierta] = useState(false);
+  const navId = useId();
+  const buscaId = useId();
+  const primerLink = useRef<HTMLAnchorElement>(null);
+  const buscaInput = useRef<HTMLInputElement>(null);
 
   async function salir() {
     setMenu(false);
+    setNavAbierta(false);
     await fetch("/api/cuenta/salir", { method: "POST" });
     setCliente(null);
     router.push("/");
     router.refresh();
   }
 
-  // Se revisa al cambiar de página para reflejar un ingreso o una salida recientes.
   useEffect(() => {
     let cancelado = false;
     fetch("/api/cuenta/sesion")
@@ -36,29 +70,101 @@ export default function Header() {
     };
   }, [pathname]);
 
+  useEffect(() => {
+    setNavAbierta(false);
+    setBuscaAbierta(false);
+  }, [pathname]);
+
+  useEffect(() => {
+    if (!navAbierta) return;
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    primerLink.current?.focus();
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setNavAbierta(false);
+    };
+    window.addEventListener("keydown", onKey);
+    return () => {
+      document.body.style.overflow = prev;
+      window.removeEventListener("keydown", onKey);
+    };
+  }, [navAbierta]);
+
+  useEffect(() => {
+    if (buscaAbierta) {
+      const t = window.setTimeout(() => buscaInput.current?.focus(), 40);
+      return () => window.clearTimeout(t);
+    }
+  }, [buscaAbierta]);
+
+  function links(conFoco = false) {
+    return NAV.map((item, i) => (
+      <Link
+        key={item.href}
+        ref={conFoco && i === 0 ? primerLink : undefined}
+        href={item.href}
+        className={item.match(pathname) ? "current" : undefined}
+        onClick={() => setNavAbierta(false)}
+      >
+        {item.label}
+      </Link>
+    ));
+  }
+
   return (
     <header className="store-header">
+      <a href="#contenido-principal" className="skip-link">
+        Saltar al contenido
+      </a>
       <div className="topline">
         <div className="wrap">
-          <span>Envíos a toda Colombia · Personaliza tu camiseta con parche y dorsal</span>
-          <span>Pago seguro en línea o contra entrega</span>
+          <span>Envíos a toda Colombia · Personaliza con parche y dorsal</span>
+          <span className="topline-pago">Pago seguro · En línea o contra entrega</span>
         </div>
       </div>
       <div className="mainline">
-        <div className="wrap">
-          <Link href="/" className="brand">
-            <span className="mark">CF</span> CAMISETA FUTBOLERA
+        <div className="wrap header-bar">
+          <button
+            type="button"
+            className="nav-toggle"
+            aria-expanded={navAbierta}
+            aria-controls={navId}
+            aria-label={navAbierta ? "Cerrar menú" : "Abrir menú"}
+            onClick={() => {
+              setBuscaAbierta(false);
+              setNavAbierta((v) => !v);
+            }}
+          >
+            <span className={`nav-toggle-bars${navAbierta ? " abierto" : ""}`} aria-hidden="true" />
+          </button>
+
+          <Link href="/" className="brand" onClick={() => setNavAbierta(false)}>
+            <span className="mark">CF</span>
+            <span className="brand-name">Camiseta Futbolera</span>
           </Link>
-          <SearchBox />
-          <nav className="store-nav">
-            <Link href="/" className={pathname === "/" ? "current" : ""}>Inicio</Link>
-            <Link href="/catalogo" className={pathname.startsWith("/catalogo") ? "current" : ""}>Catálogo</Link>
-            <Link href="/catalogo/todas?ofertas=1">Ofertas</Link>
-            <Link href="/personalizar" className={pathname.startsWith("/personalizar") ? "current" : ""}>Personalizar</Link>
-            <Link href="/cuenta" className={pathname.startsWith("/cuenta") ? "current" : ""}>Mis pedidos</Link>
-            <Link href="/terminos">Contacto</Link>
+
+          <nav className="store-nav store-nav-desk" aria-label="Principal">
+            {links()}
           </nav>
+
+          <div className="store-search-desk">
+            <SearchBox />
+          </div>
+
           <div className="header-actions">
+            <button
+              type="button"
+              className="icon-btn busca-toggle"
+              aria-expanded={buscaAbierta}
+              aria-controls={buscaId}
+              aria-label={buscaAbierta ? "Cerrar búsqueda" : "Buscar"}
+              onClick={() => {
+                setNavAbierta(false);
+                setBuscaAbierta((v) => !v);
+              }}
+            >
+              <IconoBuscar />
+            </button>
             <ThemeToggle />
             {cliente ? (
               <div className="account-menu" onBlur={(e) => !e.currentTarget.contains(e.relatedTarget) && setMenu(false)}>
@@ -70,16 +176,19 @@ export default function Header() {
                   onClick={() => setMenu((m) => !m)}
                   onKeyDown={(e) => e.key === "Escape" && setMenu(false)}
                 >
-                  👤 {cliente.nombre.split(" ")[0]} ▾
+                  <span className="account-inicial" aria-hidden="true">
+                    {cliente.nombre.trim().charAt(0).toUpperCase()}
+                  </span>
+                  <span className="account-nombre">{cliente.nombre.split(" ")[0]}</span>
                 </button>
                 {menu && (
                   <div className="account-drop" role="menu">
                     {[
-                      ["pedidos", "🧾 Mis pedidos"],
-                      ["datos", "👤 Mis datos"],
-                      ["direcciones", "📍 Direcciones"],
-                      ["pagos", "💳 Formas de pago"],
-                      ["seguridad", "🔒 Cambiar contraseña"],
+                      ["pedidos", "Mis pedidos"],
+                      ["datos", "Mis datos"],
+                      ["direcciones", "Direcciones"],
+                      ["pagos", "Formas de pago"],
+                      ["seguridad", "Cambiar contraseña"],
                     ].map(([id, label]) => (
                       <Link key={id} role="menuitem" href={`/cuenta#${id}`} onClick={() => setMenu(false)}>
                         {label}
@@ -92,16 +201,58 @@ export default function Header() {
                 )}
               </div>
             ) : (
-              <Link href="/ingresar" className="account-btn">
-                👤 Ingresar
+              <Link href="/ingresar" className="account-btn account-btn-desk">
+                Ingresar
               </Link>
             )}
-            <Link href="/carrito" className="cart-btn">
-              🛒 Carrito<span className="cart-badge" key={count}>{count}</span>
+            <Link href="/carrito" className="cart-btn" aria-label={`Carrito, ${count} productos`}>
+              <IconoCarrito />
+              <span className="cart-label">Carrito</span>
+              {count > 0 && (
+                <span className="cart-badge" key={count}>
+                  {count}
+                </span>
+              )}
             </Link>
           </div>
         </div>
+
+        <div id={buscaId} className={`busca-panel${buscaAbierta ? " abierto" : ""}`} hidden={!buscaAbierta}>
+          <div className="wrap">
+            <SearchBox inputRef={buscaInput} />
+          </div>
+        </div>
       </div>
+
+      <div
+        className={`nav-drawer-fondo${navAbierta ? " abierto" : ""}`}
+        hidden={!navAbierta}
+        onClick={() => setNavAbierta(false)}
+        aria-hidden="true"
+      />
+      <nav id={navId} className={`nav-drawer${navAbierta ? " abierto" : ""}`} aria-label="Menú móvil" hidden={!navAbierta}>
+        <div className="nav-drawer-head">
+          <b>Menú</b>
+          <button type="button" className="nav-drawer-cerrar" aria-label="Cerrar" onClick={() => setNavAbierta(false)}>
+            ×
+          </button>
+        </div>
+        <div className="store-nav store-nav-mob">{links(true)}</div>
+        <Link href="/terminos" className="nav-drawer-extra" onClick={() => setNavAbierta(false)}>
+          Ayuda y términos
+        </Link>
+        <div className="nav-drawer-pie">
+          {cliente ? (
+            <button type="button" className="btn btn-outline btn-block" onClick={salir}>
+              Cerrar sesión
+            </button>
+          ) : (
+            <Link href="/ingresar" className="btn btn-gold btn-block" onClick={() => setNavAbierta(false)}>
+              Ingresar o crear cuenta
+            </Link>
+          )}
+        </div>
+      </nav>
     </header>
   );
 }

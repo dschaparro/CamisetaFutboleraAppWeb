@@ -15,7 +15,7 @@ import {
 import type { ProductoVenta } from "@/modules/pedidos/domain/types";
 
 const CATALOGO: ProductoVenta[] = [
-  { slug: "RM-27T", nombre: "Camiseta Real Madrid Titular 2027", precio: 130000, personalizable: true },
+  { slug: "RM-27T", nombre: "Camiseta Real Madrid Titular 2026/27", precio: 130000, personalizable: true },
   { slug: "BAY-99R", nombre: "Camiseta Bayern Munich Retro 1999", precio: 120000, personalizable: false },
 ];
 const AHORA = new Date("2026-10-05T15:00:00.000Z");
@@ -47,7 +47,7 @@ describe("validarPedidoNuevo", () => {
   it("toma precio y nombre del catálogo, no del navegador", () => {
     const d = validarPedidoNuevo(BASE, CATALOGO);
     assert.equal(d.items[0].precioUnitario, 130000);
-    assert.equal(d.items[0].nombre, "Camiseta Real Madrid Titular 2027");
+    assert.equal(d.items[0].nombre, "Camiseta Real Madrid Titular 2026/27");
   });
 
   it("limpia contacto y descarta personalización en productos no personalizables", () => {

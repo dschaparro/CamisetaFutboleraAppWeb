@@ -10,6 +10,7 @@
  * PSE y Nequi: el «banco» de prueba deja elegir aprobar o rechazar.
  */
 import { luhn, soloDigitos, vencimientoValido } from "@/lib/tarjetas";
+import type { Pasarela, ResultadoPago } from "@/modules/pedidos/application/puertos";
 
 export const TARJETAS_PRUEBA = {
   aprobada: "4242 4242 4242 4242",
@@ -21,7 +22,7 @@ export type SolicitudPago =
   | { metodo: "guardada"; medioId: string; ultimos4: string; cvc: string }
   | { metodo: "pse" | "nequi"; aprobar: boolean };
 
-export type ResultadoPago = { aprobado: boolean; referencia: string; mensaje: string };
+export type { ResultadoPago };
 
 export class DatosPagoInvalidosError extends Error {
   readonly campos: Record<string, string>;
@@ -87,3 +88,9 @@ export async function cobrar(solicitud: SolicitudPago): Promise<ResultadoPago> {
     ? { aprobado: true, referencia: ref, mensaje: `Pago aprobado por ${nombre}` }
     : { aprobado: false, referencia: ref, mensaje: `El pago por ${nombre} fue rechazado` };
 }
+
+export const pasarelaSimulada: Pasarela = {
+  async cobrarDesdeBody(raw, resolverTarjeta) {
+    return cobrar(leerSolicitud(raw, resolverTarjeta));
+  },
+};

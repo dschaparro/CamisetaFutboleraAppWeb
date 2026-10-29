@@ -1,5 +1,5 @@
 import { query } from "@/lib/db";
-import type { FuentesNegocio } from "@/modules/ia/domain/contexto";
+import type { FuentesNegocio } from "@/modules/operacion/domain/fuentes";
 import { STOCK_BAJO } from "@/modules/operacion/domain/operacion";
 
 /**

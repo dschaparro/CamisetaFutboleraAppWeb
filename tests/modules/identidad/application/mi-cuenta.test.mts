@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 import { luhn, marcaTarjeta, vencimientoValido } from "@/lib/tarjetas";
-import { actualizarDatos, cambiarPassword, cambiarPerfil } from "@/modules/identidad/application/mi-cuenta";
+import { actualizarDatos, cambiarPassword, cambiarPerfil, obtenerMiCuenta, SesionClienteInvalidaError } from "@/modules/identidad/application/mi-cuenta";
 import { CuentaInvalidaError } from "@/modules/identidad/domain/cuentas";
 import { hashPassword, verifyPassword } from "@/modules/identidad/domain/password";
 import type { ClienteCuentaRepo, PerfilCliente } from "@/modules/identidad/domain/perfil-cliente";
@@ -39,6 +39,25 @@ describe("tarjetas (utilidades)", () => {
     assert.equal(marcaTarjeta("378282246310005"), "American Express");
     assert.equal(vencimientoValido("12/30", new Date("2026-10-05")), true);
     assert.equal(vencimientoValido("09/26", new Date("2026-10-05")), false);
+  });
+});
+
+describe("obtenerMiCuenta", () => {
+  it("devuelve cliente, perfil y pedidos", async () => {
+    const { r, c } = await repo();
+    const cuenta = await obtenerMiCuenta(c.id, {
+      clientes: r,
+      listarPedidos: async () => [{ id: "CF-1" }],
+    });
+    assert.equal(cuenta.cliente.email, "a@x.co");
+    assert.equal(cuenta.pedidos.length, 1);
+    assert.deepEqual(cuenta.perfil, { direcciones: [], tarjetas: [] });
+  });
+
+  it("rechaza cliente inexistente o inactivo", async () => {
+    const { r, c } = await repo();
+    c.activo = false;
+    await assert.rejects(obtenerMiCuenta("c1", { clientes: r, listarPedidos: async () => [] }), SesionClienteInvalidaError);
   });
 });
 

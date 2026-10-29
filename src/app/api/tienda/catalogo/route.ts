@@ -1,7 +1,7 @@
 import { catalogoPublico } from "@/modules/tienda/application/tienda";
 import { responder } from "@/modules/tienda/infrastructure/http";
+import { tiendaRepo } from "@/modules/tienda/infrastructure/repositorio";
 
-/** Catálogo público de la tienda (productos visibles, ligas y banners vigentes). */
 export async function GET() {
-  return responder(() => catalogoPublico());
+  return responder(() => catalogoPublico(tiendaRepo()));
 }

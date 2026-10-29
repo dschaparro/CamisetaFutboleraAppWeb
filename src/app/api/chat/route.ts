@@ -1,14 +1,10 @@
 import { NextResponse } from "next/server";
 import { ClaudeConfigError } from "@/lib/claude";
-import { validarAccion } from "@/modules/asistente/domain/acciones";
-import { validarConversacion } from "@/modules/asistente/domain/conversacion";
+import { prepararStreamChat } from "@/modules/asistente/application/responder-chat";
 import { ConversacionInvalidaError } from "@/modules/asistente/domain/errors";
-import { construirSistema, conContextoDePagina, slugDePagina } from "@/modules/asistente/domain/prompt";
-import { catalogoTienda } from "@/modules/asistente/infrastructure/catalogo-tienda";
-import { responderEnStream } from "@/modules/asistente/infrastructure/claude-chat";
+import { catalogoChat, completadorChat } from "@/modules/asistente/infrastructure/repos";
 import { allowAttempt } from "@/modules/identidad/infrastructure/rate-limit";
 
-// Ruta pública (la usan los clientes): cada mensaje es una llamada de pago a la API.
 const LIMITE_MENSAJES = 30;
 const VENTANA_MS = 10 * 60 * 1000;
 
@@ -43,27 +39,15 @@ export async function POST(request: Request) {
   }
   const datos = typeof body === "object" && body !== null ? (body as Record<string, unknown>) : {};
 
-  let mensajes;
-  try {
-    mensajes = validarConversacion(datos.mensajes);
-  } catch (err) {
-    if (err instanceof ConversacionInvalidaError) return error(400, "VALIDATION_ERROR", err.message);
-    throw err;
-  }
-
-  const catalogo = await catalogoTienda();
-  const slug = slugDePagina(datos.pagina);
-  const productoActual = slug ? (catalogo.find((p) => p.slug === slug) ?? null) : null;
-
   let textos: AsyncIterable<string>;
   try {
-    textos = await responderEnStream({
-      sistema: construirSistema(catalogo),
-      mensajes: conContextoDePagina(mensajes, productoActual),
-      signal: request.signal,
-      validarAccion: (nombre, input) => validarAccion(nombre, input, catalogo),
-    });
+    textos = await prepararStreamChat(
+      { mensajes: datos.mensajes, pagina: datos.pagina },
+      { catalogo: catalogoChat, completador: completadorChat },
+      request.signal,
+    );
   } catch (err) {
+    if (err instanceof ConversacionInvalidaError) return error(400, "VALIDATION_ERROR", err.message);
     if (err instanceof ClaudeConfigError) {
       console.error("[asistente]", err.message);
       return error(503, "IA_NO_CONFIGURADA", "El asistente no está disponible en este momento.");
