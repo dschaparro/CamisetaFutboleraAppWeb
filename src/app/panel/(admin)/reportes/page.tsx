@@ -3,6 +3,8 @@ import { money } from "@/lib/money";
 import { obtenerReportes } from "@/modules/operacion/application/reportes";
 import { reportesRepo } from "@/modules/operacion/infrastructure/repos";
 
+// Composition: page → application + puerto (sin *-pg).
+
 // Cifras en vivo desde Supabase: nunca se prerenderiza.
 export const dynamic = "force-dynamic";
 

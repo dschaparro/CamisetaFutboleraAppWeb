@@ -2,7 +2,8 @@ import { NextResponse } from "next/server";
 import { PendienteDeBaseDeDatosError } from "@/lib/modo-datos";
 import { NoEncontradoError } from "@/modules/identidad/application/mi-cuenta";
 import { CuentaInvalidaError } from "@/modules/identidad/domain/cuentas";
-import { errorJson, sesionCliente } from "@/modules/identidad/infrastructure/sesiones";
+import { errorJson } from "@/lib/http";
+import { sesionCliente } from "@/modules/identidad/infrastructure/sesiones";
 
 /**
  * Envuelve las rutas de «Mi cuenta»: exige sesión de cliente, lee el JSON y

@@ -79,7 +79,8 @@ docs/ADR-modulos.md      → mapa tesis ↔ módulos vivos
 ```
 
 Los módulos viven en `src/modules/<modulo>/{domain,application,infrastructure}`.
-`src/app` solo pinta y expone Route Handlers: llama casos de uso e inyecta repos de infrastructure.
+`src/app` solo pinta y expone Route Handlers: valida HTTP/sesión → inyecta el puerto → llama `application`.
+Errores de API: `{ error: { code, message, campos? } }` vía `@/lib/http` (`errorJson`).
 
 ## Qué falta para que esto sea la app real (no solo el frontend)
 

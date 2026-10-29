@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { PendienteDeBaseDeDatosError } from "@/lib/modo-datos";
-import { errorJson } from "@/modules/identidad/infrastructure/sesiones";
+import { errorJson } from "@/lib/http";
 import { NoExisteError } from "@/modules/tienda/application/tienda";
 import { CuponInvalidoError, DatosInvalidosError } from "@/modules/tienda/domain/reglas";
 

@@ -1,22 +1,13 @@
-import { NextResponse } from "next/server";
 import { ClaudeConfigError } from "@/lib/claude";
+import { errorJson } from "@/lib/http";
 import { prepararStreamChat } from "@/modules/asistente/application/responder-chat";
 import { ConversacionInvalidaError } from "@/modules/asistente/domain/errors";
 import { catalogoChat, completadorChat } from "@/modules/asistente/infrastructure/repos";
 import { allowAttempt } from "@/modules/identidad/infrastructure/rate-limit";
+import { clientKey } from "@/modules/identidad/infrastructure/sesiones";
 
 const LIMITE_MENSAJES = 30;
 const VENTANA_MS = 10 * 60 * 1000;
-
-function clientKey(request: Request): string {
-  const forwarded = request.headers.get("x-forwarded-for");
-  if (forwarded) return forwarded.split(",")[0]?.trim() || "unknown";
-  return request.headers.get("x-real-ip") ?? "unknown";
-}
-
-function error(status: number, code: string, message: string) {
-  return NextResponse.json({ error: { code, message } }, { status });
-}
 
 function estadoHttp(err: unknown): number | null {
   if (typeof err === "object" && err !== null && "status" in err) {
@@ -28,14 +19,14 @@ function estadoHttp(err: unknown): number | null {
 
 export async function POST(request: Request) {
   if (!allowAttempt(`chat:${clientKey(request)}`, LIMITE_MENSAJES, VENTANA_MS)) {
-    return error(429, "RATE_LIMITED", "Enviaste muchos mensajes seguidos. Espera unos minutos o escr√≠benos por WhatsApp.");
+    return errorJson(429, "RATE_LIMITED", "Enviaste muchos mensajes seguidos. Espera unos minutos o escrÌbenos por WhatsApp.");
   }
 
   let body: unknown;
   try {
     body = await request.json();
   } catch {
-    return error(400, "VALIDATION_ERROR", "Cuerpo JSON inv√°lido");
+    return errorJson(400, "VALIDATION_ERROR", "Cuerpo JSON inv·lido");
   }
   const datos = typeof body === "object" && body !== null ? (body as Record<string, unknown>) : {};
 
@@ -47,17 +38,17 @@ export async function POST(request: Request) {
       request.signal,
     );
   } catch (err) {
-    if (err instanceof ConversacionInvalidaError) return error(400, "VALIDATION_ERROR", err.message);
+    if (err instanceof ConversacionInvalidaError) return errorJson(400, "VALIDATION_ERROR", err.message);
     if (err instanceof ClaudeConfigError) {
       console.error("[asistente]", err.message);
-      return error(503, "IA_NO_CONFIGURADA", "El asistente no est√° disponible en este momento.");
+      return errorJson(503, "IA_NO_CONFIGURADA", "El asistente no est· disponible en este momento.");
     }
     const status = estadoHttp(err);
     console.error("[asistente] fallo al llamar a la API:", status ?? "", err instanceof Error ? err.message : err);
     if (status === 429 || status === 529) {
-      return error(503, "IA_SATURADA", "El asistente est√° muy ocupado. Intenta en un momento o escr√≠benos por WhatsApp.");
+      return errorJson(503, "IA_SATURADA", "El asistente est· muy ocupado. Intenta en un momento o escrÌbenos por WhatsApp.");
     }
-    return error(502, "IA_ERROR", "El asistente no pudo responder. Intenta de nuevo o escr√≠benos por WhatsApp.");
+    return errorJson(502, "IA_ERROR", "El asistente no pudo responder. Intenta de nuevo o escrÌbenos por WhatsApp.");
   }
 
   const encoder = new TextEncoder();
@@ -69,7 +60,7 @@ export async function POST(request: Request) {
         if (done) controller.close();
         else controller.enqueue(encoder.encode(value));
       } catch (err) {
-        console.error("[asistente] el stream se cort√≥:", err instanceof Error ? err.message : err);
+        console.error("[asistente] el stream se cortÛ:", err instanceof Error ? err.message : err);
         controller.error(err);
       }
     },
