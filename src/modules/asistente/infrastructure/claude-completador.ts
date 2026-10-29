@@ -60,23 +60,6 @@ export const completarConClaude: Completador = async ({ sistema, usuario }) => {
     tool_choice: { type: "tool", name: NOMBRE_HERRAMIENTA },
   });
 
-  if (process.env.NODE_ENV !== "production") {
-    console.log(
-      "[informes] respuesta API:",
-      JSON.stringify(
-        {
-          id: respuesta.id,
-          model: respuesta.model,
-          stop_reason: respuesta.stop_reason,
-          usage: respuesta.usage,
-          content: respuesta.content,
-        },
-        null,
-        2,
-      ),
-    );
-  }
-
   const bloque = respuesta.content.find((b) => b.type === "tool_use");
   if (!bloque || bloque.type !== "tool_use") {
     throw new InformeInvalidoError("La IA no devolvió un informe estructurado");

@@ -44,12 +44,6 @@ export async function responderEnStream(entrada: {
       }
     }
     const final = await stream.finalMessage();
-    if (process.env.NODE_ENV !== "production") {
-      const u = final.usage;
-      console.log(
-        `[asistente] ${final.stop_reason} · entrada ${u.input_tokens} (caché leída ${u.cache_read_input_tokens ?? 0}, escrita ${u.cache_creation_input_tokens ?? 0}) · salida ${u.output_tokens}`,
-      );
-    }
     const acciones = final.content
       .filter((b) => b.type === "tool_use")
       .map((b) => (b.type === "tool_use" ? entrada.validarAccion(b.name, b.input) : null))
