@@ -5,7 +5,7 @@ import type { ProductoTienda } from "@/modules/asistente/domain/types";
 
 const RM: ProductoTienda = {
   slug: "RM-27T",
-  nombre: "Camiseta Real Madrid Titular 2027",
+  nombre: "Camiseta Real Madrid Titular 2026/27",
   club: "Real Madrid",
   categoria: "europeo",
   precio: 130000,

@@ -214,7 +214,7 @@ export default function Banners({ banners, recargar, mensaje }: { banners: Banne
             <input type="range" min={0} max={90} step={5} value={String(f.oscurecer)} onChange={(e) => ed.set("oscurecer")(e.target.value)} />
           </Campo>
           <Campo label="Antetítulo (opcional)" error={ed.campos.antetitulo} ancho>
-            <input value={String(f.antetitulo)} placeholder="Temporada 2027 · Nueva colección" onChange={(e) => ed.set("antetitulo")(e.target.value)} />
+            <input value={String(f.antetitulo)} placeholder="Temporada 2026/27 · Nueva colección" onChange={(e) => ed.set("antetitulo")(e.target.value)} />
           </Campo>
           <Campo label="Título" error={ed.campos.titulo} ancho>
             <input value={String(f.titulo)} onChange={(e) => ed.set("titulo")(e.target.value)} />

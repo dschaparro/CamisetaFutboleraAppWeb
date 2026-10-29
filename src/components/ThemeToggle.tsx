@@ -22,9 +22,7 @@ export default function ThemeToggle() {
     window.localStorage.setItem("theme", next);
   }
 
-  if (theme === null) {
-    return <button className="theme-toggle" aria-label="Cambiar tema" disabled />;
-  }
+  if (theme === null) return null;
 
   return (
     <button

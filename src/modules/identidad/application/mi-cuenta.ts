@@ -22,6 +22,37 @@ export class NoEncontradoError extends Error {
   }
 }
 
+export class SesionClienteInvalidaError extends Error {
+  constructor() {
+    super("Inicia sesión para ver tu cuenta");
+    this.name = "SesionClienteInvalidaError";
+  }
+}
+
+export type ResumenCuenta<TPedido> = {
+  cliente: { nombre: string; email: string; telefono: string | null };
+  pedidos: TPedido[];
+  perfil: PerfilCliente;
+};
+
+/** Carga perfil y pedidos del cliente autenticado. */
+export async function obtenerMiCuenta<TPedido>(
+  clienteId: string,
+  deps: {
+    clientes: ClienteCuentaRepo;
+    listarPedidos: (clienteId: string) => Promise<TPedido[]>;
+  },
+): Promise<ResumenCuenta<TPedido>> {
+  const cliente = await deps.clientes.findById(clienteId);
+  if (!cliente || !cliente.activo) throw new SesionClienteInvalidaError();
+  const [pedidos, perfil] = await Promise.all([deps.listarPedidos(cliente.id), deps.clientes.perfil(cliente.id)]);
+  return {
+    cliente: { nombre: cliente.nombre, email: cliente.email, telefono: cliente.telefono },
+    pedidos,
+    perfil,
+  };
+}
+
 export async function actualizarDatos(clienteId: string, raw: unknown, repo: ClienteCuentaRepo): Promise<Cliente> {
   const datos = validarDatosPersonales(raw);
   const cliente = await repo.actualizar(clienteId, datos);

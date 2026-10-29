@@ -1,18 +1,14 @@
 import { randomBytes } from "node:crypto";
-import { catalogoPublico, registrarVenta } from "@/modules/tienda/application/tienda";
+import { catalogoPublico } from "@/modules/tienda/application/tienda";
 import { responder, leerJson } from "@/modules/operacion/infrastructure/http";
-import { registrarFaltantes } from "@/modules/operacion/infrastructure/lista-compras-pg";
-import { siguienteId } from "@/modules/pedidos/domain/pedido";
-import { armarVentaManual, validarVentaManual } from "@/modules/pedidos/domain/venta-manual";
+import { listaComprasRepo } from "@/modules/operacion/infrastructure/repos";
+import { registrarVentaManual } from "@/modules/pedidos/application/registrar-venta-manual";
 import { pedidosRepo } from "@/modules/pedidos/infrastructure/repositorios";
-import { vistaPanel } from "@/modules/pedidos/application/pedidos";
+import { tiendaRepo } from "@/modules/tienda/infrastructure/repositorio";
 
-// Panel: solo Administrador y Vendedor (proxy.ts).
-
-/** Productos para el formulario, incluidos los agotados (se pueden vender y quedan en la lista de compras). */
 export async function GET() {
   return responder(async () => {
-    const { productos } = await catalogoPublico();
+    const { productos } = await catalogoPublico(tiendaRepo());
     return {
       productos: productos.map((p) => ({
         id: p.id,
@@ -27,21 +23,21 @@ export async function GET() {
 
 export async function POST(request: Request) {
   return responder(async () => {
-    const { productos } = await catalogoPublico();
-    const catalogo = productos.map((p) => ({ slug: p.id, nombre: p.nombre, precio: p.precioFinal, personalizable: p.personalizable }));
-    const venta = validarVentaManual(await leerJson(request), catalogo);
-
-    const repo = pedidosRepo();
-    const id = siguienteId((await repo.listarTodos()).map((p) => p.id));
-    const pedido = armarVentaManual(venta, id, new Date(), randomBytes(16).toString("hex"));
-    await repo.guardar(pedido);
-
-    // Lo que no alcance con el stock va a la lista de compras (antes de descontar).
-    const aLista = await registrarFaltantes(pedido).catch((e) => {
-      console.error("[lista-compras]", e);
-      return 0;
+    const { productos } = await catalogoPublico(tiendaRepo());
+    const catalogo = productos.map((p) => ({
+      slug: p.id,
+      nombre: p.nombre,
+      precio: p.precioFinal,
+      personalizable: p.personalizable,
+    }));
+    return registrarVentaManual(await leerJson(request), {
+      pedidos: pedidosRepo(),
+      tienda: tiendaRepo(),
+      listaCompras: listaComprasRepo,
+      catalogo,
+      ahora: new Date(),
+      claveAcceso: randomBytes(16).toString("hex"),
+      onFaltantesError: (e) => console.error("[lista-compras]", e),
     });
-    await registrarVenta(pedido.items, null);
-    return { pedido: vistaPanel(pedido), enListaDeCompras: aLista };
   }, 201);
 }

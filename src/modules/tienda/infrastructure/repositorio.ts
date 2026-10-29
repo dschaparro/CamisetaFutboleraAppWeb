@@ -4,15 +4,15 @@ import { LIGAS, PRODUCTS } from "@/data/products";
 import { PROMOCIONES } from "@/data/promociones";
 import { usarSimulacion } from "@/lib/modo-datos";
 import { tiendaPg } from "@/modules/tienda/infrastructure/repositorio-pg";
+import type {
+  Coleccion,
+  DatosTienda,
+  ImagenGuardada,
+  TiendaRepo,
+} from "@/modules/tienda/application/puertos";
 import type { Banner, Cupon, Liga, Posicion, Producto, Promocion } from "@/modules/tienda/domain/types";
 
-/**
- * Datos de la tienda parametrizables desde el panel. SIMULADO en memoria:
- * se siembran con src/data/* y fotos libres de Wikimedia Commons, y se
- * reinician con `npm run dev`. Para Supabase: tablas productos/ligas/
- * promociones/cupones/banners + Storage para imágenes, y reemplazar este archivo.
- */
-export type ImagenGuardada = { tipo: string; datos: Buffer };
+export type { Coleccion, DatosTienda, ImagenGuardada, TiendaRepo };
 
 type Store = {
   productos: Producto[];
@@ -87,7 +87,7 @@ function sembrar(): Store {
     ],
     banners: [
       banner({
-        id: "banner-temporada", orden: 1, antetitulo: "Temporada 2027 · Nueva colección", titulo: "Tu pasión se viste aquí",
+        id: "banner-temporada", orden: 1, antetitulo: "Temporada 2026/27 · Nueva colección", titulo: "Tu pasión se viste aquí",
         texto: "Camisetas de clubes europeos, selecciones y equipos colombianos, con tu nombre y tu dorsal incluidos en el precio.",
         boton: "Ver catálogo", enlace: "/catalogo", colores: ["#0A1626", "#1B3A66"], acento: "#E3BE45", insignia: "",
         imagen: F.bernabeuInterior.url, posicion: "center", oscurecer: 60, alineacion: "izquierda",
@@ -121,21 +121,6 @@ function store(): Store {
   global.__cfSimTiendaV3 ??= sembrar();
   return global.__cfSimTiendaV3;
 }
-
-export type DatosTienda = { productos: Producto[]; ligas: Liga[]; promociones: Promocion[]; cupones: Cupon[]; banners: Banner[] };
-export type Coleccion = keyof DatosTienda;
-
-/** Acceso a los datos de la tienda (simulado o PostgreSQL, con la misma forma). */
-export type TiendaRepo = {
-  leer(): Promise<DatosTienda>;
-  /** Reemplaza la colección completa (crea, actualiza y borra lo que ya no está). */
-  guardar<K extends Coleccion>(coleccion: K, lista: DatosTienda[K]): Promise<void>;
-  /** Tras una venta: descuenta stock y suma el uso del cupón, en una sola operación. */
-  registrarVenta(items: { slug: string | null; cantidad: number }[], cuponId: string | null): Promise<void>;
-  imagen(id: string): Promise<ImagenGuardada | null>;
-  guardarImagen(id: string, img: ImagenGuardada): Promise<void>;
-  borrarImagen(id: string): Promise<void>;
-};
 
 export const tiendaSimulada: TiendaRepo = {
   async leer() {

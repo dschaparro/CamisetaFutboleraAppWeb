@@ -1,7 +1,7 @@
+import { listarInventario } from "@/modules/operacion/application/inventario";
 import { responder } from "@/modules/operacion/infrastructure/http";
-import { listarInventario } from "@/modules/operacion/infrastructure/inventario-pg";
+import { inventarioRepo } from "@/modules/operacion/infrastructure/repos";
 
-// Panel: Administrador, Vendedor y Bodega (proxy.ts). Muestra costos: nunca se expone a la tienda.
 export async function GET() {
-  return responder(() => listarInventario());
+  return responder(() => listarInventario(inventarioRepo));
 }

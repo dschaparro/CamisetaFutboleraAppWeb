@@ -25,7 +25,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           }}
         />
       </head>
-      <body>{children}</body>
+      {/* Extensiones del navegador (p. ej. ColorZilla) inyectan atributos en body y disparan hydration warning. */}
+      <body suppressHydrationWarning>{children}</body>
     </html>
   );
 }

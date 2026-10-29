@@ -1,9 +1,10 @@
 import type { ProductoTienda } from "@/modules/asistente/domain/types";
 import { catalogoPublico } from "@/modules/tienda/application/tienda";
+import { tiendaRepo } from "@/modules/tienda/infrastructure/repositorio";
 
 /** El mismo catálogo que ve la tienda (parametrizado desde el panel), con ofertas y disponibilidad. */
 export async function catalogoTienda(): Promise<ProductoTienda[]> {
-  const { productos, ligas } = await catalogoPublico();
+  const { productos, ligas } = await catalogoPublico(tiendaRepo());
   return productos.map((p) => ({
     slug: p.id,
     nombre: p.nombre,

@@ -35,7 +35,7 @@ export type Banner = {
 export const BANNERS: Banner[] = [
   {
     id: "temporada",
-    antetitulo: "Temporada 2027 · Nueva colección",
+    antetitulo: "Temporada 2026/27 · Nueva colección",
     titulo: "Tu pasión se viste aquí",
     texto: "Camisetas de clubes europeos, selecciones y equipos colombianos, con tu nombre y tu dorsal incluidos en el precio.",
     boton: "Ver catálogo",

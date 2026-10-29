@@ -1,22 +1,22 @@
 import { PRODUCTS } from "@/data/products";
 import { usarSimulacion } from "@/lib/modo-datos";
-import { catalogoVendible } from "@/modules/tienda/application/tienda";
-import { CLIENTE_DEMO_ID } from "@/modules/identidad/infrastructure/simulacion";
+import type { PedidosRepo } from "@/modules/pedidos/application/puertos";
 import { pedidosPg } from "@/modules/pedidos/infrastructure/pedidos-pg";
 import type { Pedido, ProductoVenta } from "@/modules/pedidos/domain/types";
+import { catalogoVendible } from "@/modules/tienda/application/tienda";
+import { tiendaRepo } from "@/modules/tienda/infrastructure/repositorio";
+import { CLIENTE_DEMO_ID } from "@/modules/identidad/infrastructure/simulacion";
 
-export type PedidosRepo = {
-  listarTodos(): Promise<Pedido[]>;
-  listarPorCliente(clienteId: string): Promise<Pedido[]>;
-  buscar(id: string): Promise<Pedido | null>;
-  /** Inserta o reemplaza. */
-  guardar(pedido: Pedido): Promise<void>;
-};
+export type { PedidosRepo };
 
 /** Catálogo con precios para armar pedidos (la tabla productos de la tienda). */
 export async function catalogoVenta(): Promise<ProductoVenta[]> {
-  // Productos visibles y con stock, al precio con la oferta vigente (lo mismo que muestra la tienda).
-  return (await catalogoVendible()).map((p) => ({ slug: p.id, nombre: p.nombre, precio: p.precioFinal, personalizable: p.personalizable }));
+  return (await catalogoVendible(tiendaRepo())).map((p) => ({
+    slug: p.id,
+    nombre: p.nombre,
+    precio: p.precioFinal,
+    personalizable: p.personalizable,
+  }));
 }
 
 const LAURA = { nombre: "Laura Ramírez", email: "laura@demo.co", telefono: "3001234567" };

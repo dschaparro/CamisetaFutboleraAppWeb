@@ -1,6 +1,7 @@
 import BarChart from "@/components/admin/BarChart";
 import { money } from "@/lib/money";
-import { reportes } from "@/modules/operacion/infrastructure/reportes-pg";
+import { obtenerReportes } from "@/modules/operacion/application/reportes";
+import { reportesRepo } from "@/modules/operacion/infrastructure/repos";
 
 // Cifras en vivo desde Supabase: nunca se prerenderiza.
 export const dynamic = "force-dynamic";
@@ -9,7 +10,7 @@ const vacio = (texto: string) => <p style={{ color: "var(--ink-mute)", fontSize:
 const pct = (n: number | null) => (n === null ? "—" : `${n.toLocaleString("es-CO")}%`);
 
 export default async function ReportesPage() {
-  const r = await reportes();
+  const r = await obtenerReportes(reportesRepo);
   const miles = (n: number) => Math.round(n / 1000);
   return (
     <>

@@ -6,33 +6,37 @@ import Imagen from "@/components/store/Imagen";
 import ProductCard, { TarjetasCargando } from "@/components/store/ProductCard";
 import { useCatalogo } from "@/components/store/useCatalogo";
 
-/** Inicio: banners, ofertas, ligas y novedades (todo parametrizado en el panel). */
 export default function HomePage() {
   const { catalogo, error } = useCatalogo();
   const productos = catalogo?.productos ?? [];
   const ofertas = productos.filter((p) => p.promocion && p.disponibilidad !== "agotado");
-  const novedades = productos.filter((p) => p.etiqueta === "Nuevo" || p.nombre.includes("2027")).slice(0, 4);
+  const novedades = productos.filter((p) => p.etiqueta === "Nuevo" || p.nombre.includes("2026/27")).slice(0, 4);
 
   return (
     <>
       {catalogo ? <BannerCarrusel banners={catalogo.banners} /> : <div className="dp-esqueleto cargando-card" aria-busy="true" />}
 
-      <div className="wrap">
+      <div className="wrap store-home">
         {error && (
-          <div className="card" style={{ padding: 20, marginTop: 24 }}>
-            No pudimos cargar las camisetas. Recarga la página en un momento.
+          <div className="aviso-carga" role="alert">
+            <b>No pudimos cargar las camisetas</b>
+            <p>Revisa tu conexión e inténtalo de nuevo.</p>
+            <button type="button" className="btn btn-outline btn-sm" onClick={() => window.location.reload()}>
+              Recargar
+            </button>
           </div>
         )}
 
         {(!catalogo || ofertas.length > 0) && (
-          <section>
+          <section className="home-section" aria-labelledby="tit-ofertas">
             <div className="section-head">
               <div>
-                <h2>🔥 Ofertas de la semana</h2>
-                <p className="section-note">Descuentos por tiempo limitado. El precio con descuento se aplica en el carrito.</p>
+                <p className="eyebrow">Por tiempo limitado</p>
+                <h2 id="tit-ofertas">Ofertas de la semana</h2>
+                <p className="section-note">El precio con descuento se aplica al carrito. Cupos sujetos a stock.</p>
               </div>
               <Link className="btn btn-outline btn-sm" href="/catalogo/todas?ofertas=1">
-                Ver todas las ofertas →
+                Ver ofertas
               </Link>
             </div>
             {catalogo ? (
@@ -47,16 +51,24 @@ export default function HomePage() {
           </section>
         )}
 
-        <section>
+        <section className="home-section" aria-labelledby="tit-ligas">
           <div className="section-head">
-            <h2>Compra por liga</h2>
+            <div>
+              <p className="eyebrow">Explora</p>
+              <h2 id="tit-ligas">Compra por liga</h2>
+            </div>
             <Link className="link-mas" href="/catalogo">
-              Ver todas →
+              Ver todas
             </Link>
           </div>
           <div className="ligas-mini">
             {(catalogo?.ligas ?? []).map((l) => (
-              <Link key={l.id} href={`/catalogo/${l.id}`} className="liga-mini" style={{ background: `linear-gradient(135deg, ${l.colores[0]}, ${l.colores[1]})` }}>
+              <Link
+                key={l.id}
+                href={`/catalogo/${l.id}`}
+                className="liga-mini"
+                style={{ background: `linear-gradient(135deg, ${l.colores[0]}, ${l.colores[1]})` }}
+              >
                 {l.imagen && <Imagen refImagen={l.imagen} alt="" sizes="200px" posicion={l.posicion} className="liga-foto" />}
                 <span className="liga-velo" style={{ background: `linear-gradient(160deg, ${l.colores[0]}cc, ${l.colores[1]}e6)` }} />
                 <b>{l.nombre}</b>
@@ -67,11 +79,12 @@ export default function HomePage() {
         </section>
 
         {novedades.length > 0 && (
-          <section>
+          <section className="home-section" aria-labelledby="tit-novedades">
             <div className="section-head">
               <div>
-                <h2>Novedades</h2>
-                <p className="section-note">Las camisetas de la nueva temporada, personalizables con tu nombre y dorsal.</p>
+                <p className="eyebrow">Temporada</p>
+                <h2 id="tit-novedades">Novedades</h2>
+                <p className="section-note">Personalizables con tu nombre y dorsal.</p>
               </div>
             </div>
             <div className="product-grid">
@@ -82,26 +95,34 @@ export default function HomePage() {
           </section>
         )}
 
-        <section className="confianza">
-          <div className="card">
-            <span aria-hidden="true">🚚</span>
-            <b>Entrega en 1-2 días hábiles</b>
-            <p>En Bogotá. Envíos a toda Colombia.</p>
+        <section className="confianza" aria-label="Por qué comprar aquí">
+          <div className="card confianza-card">
+            <span className="confianza-ico" aria-hidden="true">
+              1–2
+            </span>
+            <b>Entrega ágil</b>
+            <p>1–2 días hábiles en Bogotá. Envíos a toda Colombia.</p>
           </div>
-          <div className="card">
-            <span aria-hidden="true">🎽</span>
-            <b>Personalización incluida</b>
-            <p>Parche de liga, nombre y dorsal en el precio.</p>
+          <div className="card confianza-card">
+            <span className="confianza-ico" aria-hidden="true">
+              CF
+            </span>
+            <b>Personalización</b>
+            <p>Parche de liga, nombre y dorsal incluidos en el precio.</p>
           </div>
-          <div className="card">
-            <span aria-hidden="true">🔒</span>
-            <b>Pago 100 % seguro</b>
+          <div className="card confianza-card">
+            <span className="confianza-ico" aria-hidden="true">
+              ✓
+            </span>
+            <b>Pago seguro</b>
             <p>Tarjeta, PSE, Nequi o contra entrega.</p>
           </div>
-          <div className="card">
-            <span aria-hidden="true">🔄</span>
+          <div className="card confianza-card">
+            <span className="confianza-ico" aria-hidden="true">
+              ↔
+            </span>
             <b>Cambios fáciles</b>
-            <p>Si llega con defecto, asumimos el envío.</p>
+            <p>Si llega con defecto, asumimos el envío de devolución.</p>
           </div>
         </section>
       </div>

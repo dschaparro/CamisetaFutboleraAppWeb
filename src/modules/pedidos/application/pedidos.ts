@@ -1,6 +1,6 @@
+import type { PedidosRepo } from "@/modules/pedidos/application/puertos";
 import { armarPedido, cambiarEstado, registrarPago, siguienteId, validarPedidoNuevo } from "@/modules/pedidos/domain/pedido";
 import type { EstadoPedido, Pedido, ProductoVenta } from "@/modules/pedidos/domain/types";
-import type { PedidosRepo } from "@/modules/pedidos/infrastructure/repositorios";
 
 /** Crea el pedido del checkout. Si hay cliente con sesión, queda en su historial. */
 export async function crearPedido(

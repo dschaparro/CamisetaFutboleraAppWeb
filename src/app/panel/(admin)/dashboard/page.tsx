@@ -1,6 +1,7 @@
 import BarChart from "@/components/admin/BarChart";
 import { money } from "@/lib/money";
-import { dashboard } from "@/modules/operacion/infrastructure/reportes-pg";
+import { obtenerDashboard } from "@/modules/operacion/application/reportes";
+import { reportesRepo } from "@/modules/operacion/infrastructure/repos";
 
 // Cifras en vivo desde Supabase: nunca se prerenderiza.
 export const dynamic = "force-dynamic";
@@ -24,7 +25,7 @@ function Variacion({ valor, sufijo }: { valor: number | null; sufijo: string }) 
 }
 
 export default async function DashboardPage() {
-  const d = await dashboard();
+  const d = await obtenerDashboard(reportesRepo);
   return (
     <>
       <div className="admin-topbar">

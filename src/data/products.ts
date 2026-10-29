@@ -24,14 +24,14 @@ export const LIGAS: { id: LigaId; nombre: string; pais: string; descripcion: str
 ];
 
 export const PRODUCTS: Product[] = [
-  { id: "RM-27T", club: "Real Madrid", name: "Camiseta Real Madrid Titular 2027", cat: "europeo", liga: "laliga", price: 130000, initials: "RM", personalizable: true, tag: "Nuevo" },
-  { id: "SEL-27L", club: "Selección Colombia", name: "Camiseta Local Selección Colombia 2027", cat: "seleccion", liga: "selecciones", price: 135000, initials: "SEL", personalizable: true },
-  { id: "FCB-27V", club: "FC Barcelona", name: "Camiseta FC Barcelona Visitante 2027", cat: "europeo", liga: "laliga", price: 125000, initials: "FCB", personalizable: true },
-  { id: "PSG-27T", club: "Paris Saint-Germain", name: "Camiseta PSG Titular 2027", cat: "europeo", liga: "ligue1", price: 130000, initials: "PSG", personalizable: true },
+  { id: "RM-27T", club: "Real Madrid", name: "Camiseta Real Madrid Titular 2026/27", cat: "europeo", liga: "laliga", price: 130000, initials: "RM", personalizable: true, tag: "Nuevo" },
+  { id: "SEL-27L", club: "Selección Colombia", name: "Camiseta Local Selección Colombia 2026", cat: "seleccion", liga: "selecciones", price: 135000, initials: "SEL", personalizable: true },
+  { id: "FCB-27V", club: "FC Barcelona", name: "Camiseta FC Barcelona Visitante 2026/27", cat: "europeo", liga: "laliga", price: 125000, initials: "FCB", personalizable: true },
+  { id: "PSG-27T", club: "Paris Saint-Germain", name: "Camiseta PSG Titular 2026/27", cat: "europeo", liga: "ligue1", price: 130000, initials: "PSG", personalizable: true },
   { id: "MFC-26T", club: "Millonarios FC", name: "Camiseta Millonarios Titular 2026", cat: "colombiano", liga: "betplay", price: 115000, initials: "MFC", personalizable: true },
   { id: "BAY-99R", club: "Bayern Munich", name: "Camiseta Bayern Munich Retro 1999", cat: "europeo", liga: "bundesliga", price: 120000, initials: "BAY", personalizable: false, tag: "Retro", retro: true },
   { id: "ATN-26T", club: "Atlético Nacional", name: "Camiseta Atlético Nacional Titular 2026", cat: "colombiano", liga: "betplay", price: 115000, initials: "ATN", personalizable: true },
-  { id: "MCI-27T", club: "Manchester City", name: "Camiseta Manchester City Titular 2027", cat: "europeo", liga: "premier", price: 130000, initials: "MCI", personalizable: true },
+  { id: "MCI-27T", club: "Manchester City", name: "Camiseta Manchester City Titular 2026/27", cat: "europeo", liga: "premier", price: 130000, initials: "MCI", personalizable: true },
 ];
 
 export function crestGradient(cat: Product["cat"]): string {

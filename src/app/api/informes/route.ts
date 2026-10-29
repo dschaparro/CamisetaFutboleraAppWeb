@@ -1,9 +1,10 @@
 import { NextResponse } from "next/server";
 import { ClaudeConfigError } from "@/lib/claude";
-import { generarInforme } from "@/modules/ia/application/generar-informe";
-import { InformeInvalidoError, SolicitudInvalidaError } from "@/modules/ia/domain/errors";
-import { completarConClaude } from "@/modules/ia/infrastructure/claude-completador";
-import { fuentesDelSistema } from "@/modules/operacion/infrastructure/reportes-pg";
+import { generarInforme } from "@/modules/asistente/application/generar-informe";
+import { InformeInvalidoError, SolicitudInvalidaError } from "@/modules/asistente/domain/errors";
+import { completarConClaude } from "@/modules/asistente/infrastructure/claude-completador";
+import { fuentesNegocio } from "@/modules/operacion/application/reportes";
+import { reportesRepo } from "@/modules/operacion/infrastructure/repos";
 import { allowAttempt } from "@/modules/identidad/infrastructure/rate-limit";
 
 // Cada informe es una llamada de pago a la API: se limita por cliente.
@@ -46,7 +47,7 @@ export async function POST(request: Request) {
 
   try {
     const informe = await generarInforme(solicitud, {
-      fuentes: fuentesDelSistema,
+      fuentes: () => fuentesNegocio(reportesRepo),
       completar: completarConClaude,
     });
     return NextResponse.json({ informe });

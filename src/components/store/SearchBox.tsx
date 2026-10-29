@@ -8,7 +8,7 @@ import { cargarCatalogo } from "@/components/store/useCatalogo";
 import { urlImagen, type ProductoPublico } from "@/modules/tienda/domain/types";
 
 /** Buscador del encabezado: sugiere camisetas mientras se escribe (flechas + Enter) o abre el catálogo filtrado. */
-export default function SearchBox() {
+export default function SearchBox({ inputRef }: { inputRef?: React.RefObject<HTMLInputElement | null> }) {
   const router = useRouter();
   const [texto, setTexto] = useState("");
   const [abierto, setAbierto] = useState(false);
@@ -67,6 +67,7 @@ export default function SearchBox() {
     <form className="store-search" role="search" onSubmit={enviar} ref={caja}>
       <span className="store-search-ic" aria-hidden="true">⌕</span>
       <input
+        ref={inputRef}
         type="search"
         role="combobox"
         aria-autocomplete="list"
