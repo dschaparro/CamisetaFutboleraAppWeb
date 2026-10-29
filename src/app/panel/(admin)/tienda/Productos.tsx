@@ -158,8 +158,9 @@ export default function Productos({
           <tbody>
             {lista.length === 0 && (
               <tr>
-                <td colSpan={7} className={s.vacio}>
-                  No hay productos con ese filtro.
+                <td colSpan={7} className={`${s.vacio} panel-vacio`}>
+                  <b>Sin productos</b>
+                  <span>No hay productos con ese filtro. Cambia la búsqueda o crea uno nuevo.</span>
                 </td>
               </tr>
             )}

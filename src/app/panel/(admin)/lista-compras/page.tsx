@@ -81,9 +81,18 @@ export default function ListaComprasPage() {
             <tr><th>Producto</th><th>Talla / manga</th><th>Personalización</th><th>Cant.</th><th>Origen</th><th>Estado</th><th></th></tr>
           </thead>
           <tbody>
-            {!items && !error && <tr><td colSpan={7} style={{ color: "var(--ink-mute)" }}>Cargando…</td></tr>}
+            {!items && !error && <tr><td colSpan={7} className="panel-vacio">Cargando…</td></tr>}
             {items && visibles.length === 0 && (
-              <tr><td colSpan={7} style={{ color: "var(--ink-mute)" }}>{items.length === 0 ? "No hay nada por conseguir: ninguna venta se ha quedado sin stock." : "Nada con ese filtro."}</td></tr>
+              <tr>
+                <td colSpan={7} className="panel-vacio">
+                  <b>{items.length === 0 ? "Lista vacía" : "Sin resultados"}</b>
+                  <span>
+                    {items.length === 0
+                      ? "No hay nada por conseguir: ninguna venta se ha quedado sin stock."
+                      : "Nada con ese filtro. Prueba otro estado o búsqueda."}
+                  </span>
+                </td>
+              </tr>
             )}
             {visibles.map((i) => (
               <tr key={i.id}>
