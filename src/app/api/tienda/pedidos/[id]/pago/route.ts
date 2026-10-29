@@ -4,7 +4,8 @@ import { clientesRepo } from "@/modules/identidad/infrastructure/repositorios";
 import { clientKey, errorJson, sesionCliente } from "@/modules/identidad/infrastructure/sesiones";
 import { PedidoNoVisibleError, procesarPagoPedido } from "@/modules/pedidos/application/procesar-pago";
 import { PagoNoPermitidoError } from "@/modules/pedidos/domain/pedido";
-import { DatosPagoInvalidosError, pasarelaSimulada } from "@/modules/pedidos/infrastructure/pasarela-simulada";
+import { pasarelaActiva } from "@/modules/pedidos/infrastructure/pasarela";
+import { DatosPagoInvalidosError } from "@/modules/pedidos/infrastructure/pasarela-simulada";
 import { pedidosRepo } from "@/modules/pedidos/infrastructure/repositorios";
 
 export async function POST(request: Request, { params }: { params: Promise<{ id: string }> }) {
@@ -30,7 +31,7 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
     const tarjetas = sesion ? (await clientesRepo().perfil(sesion.sub)).tarjetas : [];
     const { pedido, pago } = await procesarPagoPedido(id, body, {
       pedidos: pedidosRepo(),
-      pasarela: pasarelaSimulada,
+      pasarela: pasarelaActiva(),
       clave,
       clienteId: sesion?.sub ?? null,
       tarjetas: tarjetas.map((t) => ({ id: t.id, ultimos4: t.ultimos4 })),
