@@ -14,7 +14,21 @@ const SIZES = ["S", "M", "L", "XL"];
 
 export default function ProductPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = use(params);
-  const { catalogo } = useCatalogo();
+  const { catalogo, error } = useCatalogo();
+
+  if (error) {
+    return (
+      <div className="wrap cart-page">
+        <div className="aviso-carga" role="alert">
+          <b>No pudimos cargar esta camiseta</b>
+          <p>Revisa tu conexión e inténtalo de nuevo.</p>
+          <button type="button" className="btn btn-outline btn-sm" onClick={() => window.location.reload()}>
+            Recargar
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   if (!catalogo) {
     return (
@@ -26,11 +40,16 @@ export default function ProductPage({ params }: { params: Promise<{ slug: string
   const product = catalogo.productos.find((p) => p.id === slug);
   if (!product) {
     return (
-      <div className="wrap" style={{ padding: "60px 0", textAlign: "center" }}>
-        <h2>Esta camiseta ya no está disponible</h2>
-        <Link className="btn btn-gold" href="/catalogo" style={{ marginTop: 16 }}>
-          Ver el catálogo
-        </Link>
+      <div className="wrap cart-page">
+        <div className="cart-vacio">
+          <h2>Esta camiseta ya no está disponible</h2>
+          <p>Puede haberse agotado o retirado del catálogo.</p>
+          <div className="cart-vacio-acciones">
+            <Link className="btn btn-gold" href="/catalogo">
+              Ver el catálogo
+            </Link>
+          </div>
+        </div>
       </div>
     );
   }

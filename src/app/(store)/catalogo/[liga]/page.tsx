@@ -19,7 +19,7 @@ export default function LigaPage({
 }) {
   const { liga } = use(params);
   const { club: clubInicial, ofertas, q: busquedaInicial } = use(searchParams);
-  const { catalogo } = useCatalogo();
+  const { catalogo, error } = useCatalogo();
   const info = catalogo?.ligas.find((l) => l.id === liga);
   // Mientras carga no se sabe el nombre de la liga: no mostrar «Todas» por error.
   const titulo = info?.nombre ?? (liga !== "todas" && !catalogo ? "Cargando…" : soloOfertasInicial(ofertas) ? "Ofertas" : "Todas las camisetas");
@@ -44,13 +44,32 @@ export default function LigaPage({
     return orden0.sort((a, b) => (orden === "menor" ? 1 : -1) * (a.precioFinal - b.precioFinal));
   }, [catalogo, liga, query, soloOfertas, personalizable, orden]);
 
+  if (error) {
+    return (
+      <div className="wrap cart-page">
+        <div className="aviso-carga" role="alert">
+          <b>No pudimos cargar el catálogo</b>
+          <p>Revisa tu conexión e inténtalo de nuevo.</p>
+          <button type="button" className="btn btn-outline btn-sm" onClick={() => window.location.reload()}>
+            Recargar
+          </button>
+        </div>
+      </div>
+    );
+  }
+
   if (catalogo && liga !== "todas" && !info) {
     return (
-      <div className="wrap" style={{ padding: "60px 0", textAlign: "center" }}>
-        <h2>No encontramos esa liga</h2>
-        <Link className="btn btn-gold" href="/catalogo" style={{ marginTop: 16 }}>
-          Volver al catálogo
-        </Link>
+      <div className="wrap cart-page">
+        <div className="cart-vacio">
+          <h2>No encontramos esa liga</h2>
+          <p>Puede que el enlace haya cambiado. Explora el catálogo completo.</p>
+          <div className="cart-vacio-acciones">
+            <Link className="btn btn-gold" href="/catalogo">
+              Volver al catálogo
+            </Link>
+          </div>
+        </div>
       </div>
     );
   }
@@ -91,11 +110,17 @@ export default function LigaPage({
         {!catalogo ? (
           <TarjetasCargando />
         ) : lista.length === 0 ? (
-          <div className="card" style={{ padding: 40, textAlign: "center", color: "var(--ink-mute)" }}>
-            No hay camisetas con esos filtros.{" "}
-            <button className="btn btn-ghost btn-sm" onClick={() => { setQuery(""); setSoloOfertas(false); setPersonalizable(false); }}>
-              Quitar filtros
-            </button>
+          <div className="cart-vacio" style={{ marginTop: 28 }}>
+            <h2>Sin resultados</h2>
+            <p>No hay camisetas con esos filtros. Prueba otra búsqueda o quita los filtros.</p>
+            <div className="cart-vacio-acciones">
+              <button type="button" className="btn btn-outline btn-sm" onClick={() => { setQuery(""); setSoloOfertas(false); setPersonalizable(false); }}>
+                Quitar filtros
+              </button>
+              <Link className="btn btn-gold btn-sm" href="/catalogo">
+                Ver ligas
+              </Link>
+            </div>
           </div>
         ) : (
           <div className="product-grid">

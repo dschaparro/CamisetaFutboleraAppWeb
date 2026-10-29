@@ -86,12 +86,6 @@ export default function CartPage() {
               <span>Envío</span>
               <span>Se calcula en el checkout</span>
             </div>
-            <div className="promo-row">
-              <input placeholder="Código de descuento" aria-label="Código de descuento" />
-              <button type="button" className="btn btn-outline btn-sm">
-                Aplicar
-              </button>
-            </div>
             <div className="summary-row total">
               <span>Total estimado</span>
               <span className="tabular">{money(subtotal)}</span>
@@ -99,7 +93,9 @@ export default function CartPage() {
             <Link className="btn btn-gold btn-block" href="/checkout">
               Continuar al pago
             </Link>
-            <p className="cart-nota">Puedes abonar una parte y pagar el resto contra entrega en el siguiente paso.</p>
+            <p className="cart-nota">
+              Cupones y envío se aplican en el checkout. También puedes abonar el 50 % y pagar el resto contra entrega.
+            </p>
           </aside>
         </div>
       )}
