@@ -5,6 +5,7 @@ import { use, useEffect, useRef, useState } from "react";
 import { IconoAlerta, IconoCamion, IconoCandado, IconoCheck, IconoTarjeta } from "@/components/icons/pago";
 import LoaderMarca from "@/components/store/LoaderMarca";
 import s from "@/components/store/confirmacion.module.css";
+import { useCart } from "@/context/CartContext";
 import { useToast } from "@/context/ToastContext";
 import { money } from "@/lib/money";
 import { PASOS_PEDIDO, type Pedido } from "@/modules/pedidos/domain/types";
@@ -30,10 +31,12 @@ export default function ConfirmationPage({
   const k = sp.k ?? "";
   const paymentId = sp.payment_id || sp.collection_id || "";
   const { toast } = useToast();
+  const { clear } = useCart();
   const [pedido, setPedido] = useState<Pedido | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [conCuenta, setConCuenta] = useState(false);
   const toastHecho = useRef(false);
+  const carritoVaciado = useRef(false);
 
   useEffect(() => {
     if (!id) return;
@@ -58,6 +61,18 @@ export default function ConfirmationPage({
       setPedido(d.pedido);
       const tieneCuenta = d.pedido.clienteId !== null;
       setConCuenta(tieneCuenta);
+
+      // Vaciar solo con cobro/confirmación real — no en pendiente ni cancelado.
+      const pagoOk =
+        d.pedido.estadoPago === "Pagado" ||
+        d.pedido.estadoPago === "Abono 50%" ||
+        d.pedido.estado === "Alistamiento" ||
+        d.pedido.estado === "Enviado" ||
+        d.pedido.estado === "Entregado";
+      if (pagoOk && !carritoVaciado.current) {
+        carritoVaciado.current = true;
+        clear();
+      }
 
       if (!toastHecho.current) {
         toastHecho.current = true;
@@ -85,7 +100,7 @@ export default function ConfirmationPage({
     return () => {
       cancelado = true;
     };
-  }, [id, k, paymentId, toast]);
+  }, [id, k, paymentId, toast, clear]);
 
   if (!id || error) {
     return (

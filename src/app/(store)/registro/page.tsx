@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState, type FormEvent } from "react";
-import s from "@/components/store/cuenta.module.css";
+import s from "@/components/store/auth.module.css";
 import { useCart } from "@/context/CartContext";
 
 type Campos = Partial<Record<"nombre" | "email" | "telefono" | "password" | "confirmar", string>>;
@@ -33,7 +33,12 @@ export default function RegistroPage() {
       const res = await fetch("/api/cuenta/registro", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ nombre: form.nombre, email: form.email, telefono: form.telefono, password: form.password }),
+        body: JSON.stringify({
+          nombre: form.nombre,
+          email: form.email,
+          telefono: form.telefono,
+          password: form.password,
+        }),
       });
       const data = (await res.json()) as { error?: { message?: string; campos?: Campos } };
       if (!res.ok) {
@@ -42,7 +47,6 @@ export default function RegistroPage() {
         return;
       }
       await enlazarTrasAuth();
-      // Si venía del pago, vuelve al pago; si no, a su cuenta.
       const v = new URLSearchParams(window.location.search).get("volver");
       router.push(v && v.startsWith("/") && !v.startsWith("//") && !v.startsWith("/panel") ? v : "/cuenta");
       router.refresh();
@@ -53,19 +57,24 @@ export default function RegistroPage() {
     }
   }
 
-  const campo = (k: keyof Campos, label: string, input: React.InputHTMLAttributes<HTMLInputElement>, hint?: string) => (
-    <div className={`field ${campos[k] ? s.campoError : ""}`}>
+  const campo = (
+    k: keyof Campos,
+    label: string,
+    input: React.InputHTMLAttributes<HTMLInputElement>,
+    hint?: string,
+  ) => (
+    <div className={`field${campos[k] ? ` ${s.campoError}` : ""}`}>
       <label htmlFor={k}>{label}</label>
       <input id={k} value={form[k]} onChange={set(k)} aria-invalid={!!campos[k]} {...input} />
-      {campos[k] ? <small>{campos[k]}</small> : hint ? <small className={s.hint}>{hint}</small> : null}
+      {campos[k] ? <small className="field-error">{campos[k]}</small> : hint ? <small className={s.hint}>{hint}</small> : null}
     </div>
   );
 
   return (
-    <div className="wrap">
-      <div className={s.auth}>
-        <div className="eyebrow">Mi cuenta</div>
-        <h1>Crea tu cuenta</h1>
+    <div className={`wrap ${s.page}`}>
+      <div className={s.card}>
+        <p className={s.eyebrow}>Mi cuenta</p>
+        <h1 className={s.titulo}>Crea tu cuenta</h1>
         <p className={s.sub}>Sigue tus pedidos y guarda tus datos para la próxima compra.</p>
 
         <form className={s.form} onSubmit={onSubmit} noValidate>
@@ -74,14 +83,16 @@ export default function RegistroPage() {
           {campo("telefono", "Celular (opcional)", { type: "tel", autoComplete: "tel", inputMode: "tel" }, "Para avisarte del envío")}
           {campo("password", "Contraseña", { type: "password", autoComplete: "new-password", required: true }, "Mínimo 8 caracteres")}
           {campo("confirmar", "Confirma la contraseña", { type: "password", autoComplete: "new-password", required: true })}
-          {error && (
+          {error ? (
             <p className="form-error" role="alert">
               {error}
             </p>
-          )}
-          <button className="btn btn-gold btn-block" disabled={enviando}>
-            {enviando ? "Creando cuenta…" : "Crear cuenta"}
-          </button>
+          ) : null}
+          <div className={s.acciones}>
+            <button className="btn btn-gold btn-block" disabled={enviando}>
+              {enviando ? "Creando cuenta…" : "Crear cuenta"}
+            </button>
+          </div>
         </form>
 
         <p className={s.alterno}>

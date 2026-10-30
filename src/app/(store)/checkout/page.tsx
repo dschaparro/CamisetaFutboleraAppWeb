@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState, type FormEvent, type InputHTMLAttributes } from "react";
 import { IconoBanco, IconoCamion, IconoCandado, IconoCheck, IconoTarjeta } from "@/components/icons/pago";
+import LoaderMarca from "@/components/store/LoaderMarca";
 import s from "@/components/store/checkout.module.css";
 import { useCart } from "@/context/CartContext";
 import { useToast } from "@/context/ToastContext";
@@ -174,9 +175,13 @@ export default function CheckoutPage() {
         } else {
           toast({ variant: "error", titulo: "No se pudo continuar", detalle: msg });
         }
+        setEnviando(false);
         return;
       }
-      clear();
+      // Solo vaciar si el pedido ya quedó cerrado (p. ej. contraentrega). Con pasarela el carrito
+      // se mantiene hasta pago exitoso (página de pago / confirmación).
+      const vaAPasarela = data.siguiente.startsWith("/pago/");
+      if (!vaAPasarela) clear();
       toast({
         variant: "ok",
         titulo: pago === "contraentrega" ? "Pedido confirmado" : "Datos listos",
@@ -185,7 +190,6 @@ export default function CheckoutPage() {
       router.push(data.siguiente);
     } catch {
       toast({ variant: "error", titulo: "Sin conexión", detalle: "Revisa tu red e intenta otra vez" });
-    } finally {
       setEnviando(false);
     }
   }
@@ -236,6 +240,21 @@ export default function CheckoutPage() {
             </div>
           </aside>
         </div>
+      </div>
+    );
+  }
+
+  if (enviando && items.length === 0) {
+    return (
+      <div className={`wrap ${s.pagina}`}>
+        <LoaderMarca
+          titulo={pago === "contraentrega" ? "Confirmando tu pedido…" : "Llevándote al pago…"}
+          detalle={
+            pago === "contraentrega"
+              ? "Preparando el resumen de tu compra."
+              : "En un momento abriremos el checkout seguro de Mercado Pago."
+          }
+        />
       </div>
     );
   }

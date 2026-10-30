@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState, type FormEvent } from "react";
-import s from "@/components/store/cuenta.module.css";
+import s from "@/components/store/auth.module.css";
 import { useCart } from "@/context/CartContext";
 
 type Demo = { password: string; cuentas: readonly { email: string; rol: string; descripcion: string }[] };
@@ -25,10 +25,13 @@ export default function IngresarPage() {
   const [enviando, setEnviando] = useState(false);
   const [demo, setDemo] = useState<Demo | null>(null);
   const [volver, setVolver] = useState<string | null>(null);
+  const [avisoReset, setAvisoReset] = useState(false);
 
   useEffect(() => {
-    // Leído después de montar (en el servidor no hay window).
-    queueMicrotask(() => setVolver(volverSeguro()));
+    queueMicrotask(() => {
+      setVolver(volverSeguro());
+      setAvisoReset(new URLSearchParams(window.location.search).get("reset") === "1");
+    });
   }, []);
 
   useEffect(() => {
@@ -73,14 +76,22 @@ export default function IngresarPage() {
   }
 
   return (
-    <div className="wrap">
-      <div className={s.auth}>
-        <div className="eyebrow">Mi cuenta</div>
-        <h1>Ingresa a tu cuenta</h1>
+    <div className={`wrap ${s.page}`}>
+      <div className={s.card}>
+        <p className={s.eyebrow}>Mi cuenta</p>
+        <h1 className={s.titulo}>Ingresa a tu cuenta</h1>
+
+        {avisoReset ? (
+          <div className={s.exito} role="status">
+            <b>Contraseña actualizada</b>
+            <span>Ya puedes ingresar con tu nueva clave.</span>
+          </div>
+        ) : null}
+
         {volver === "/checkout" ? (
-          <p className={`${s.sub} ${s.avisoCompra}`}>
-            Para finalizar tu compra, ingresa o <Link href="/registro?volver=/checkout">crea tu cuenta gratis</Link>. Tu carrito
-            te espera.
+          <p className={s.avisoCompra}>
+            Para finalizar tu compra, ingresa o{" "}
+            <Link href="/registro?volver=/checkout">crea tu cuenta gratis</Link>. Tu carrito te espera.
           </p>
         ) : (
           <p className={s.sub}>Revisa tus pedidos y compra más rápido. Si eres parte del equipo, entrarás al panel.</p>
@@ -89,43 +100,52 @@ export default function IngresarPage() {
         <form className={s.form} onSubmit={onSubmit}>
           <div className="field">
             <label htmlFor="email">Correo electrónico</label>
-            <input id="email" type="email" autoComplete="username" value={email} onChange={(e) => setEmail(e.target.value)} required />
-          </div>
-          <div className={`field ${s.verPass}`}>
-            <label htmlFor="password">Contraseña</label>
             <input
-              id="password"
-              type={verPass ? "text" : "password"}
-              autoComplete="current-password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
+              id="email"
+              type="email"
+              autoComplete="username"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
               required
             />
-            <button type="button" onClick={() => setVerPass((v) => !v)}>
-              {verPass ? "Ocultar" : "Ver"}
-            </button>
           </div>
-          {error && (
+          <div className="field">
+            <label htmlFor="password">Contraseña</label>
+            <div className={s.verPass}>
+              <input
+                id="password"
+                type={verPass ? "text" : "password"}
+                autoComplete="current-password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+              />
+              <button type="button" onClick={() => setVerPass((v) => !v)} aria-label={verPass ? "Ocultar contraseña" : "Ver contraseña"}>
+                {verPass ? "Ocultar" : "Ver"}
+              </button>
+            </div>
+          </div>
+          <Link className={s.olvidaste} href="/recuperar">
+            ¿Olvidaste tu contraseña?
+          </Link>
+          {error ? (
             <p className="form-error" role="alert">
               {error}
             </p>
-          )}
-          <button className="btn btn-gold btn-block" disabled={enviando}>
-            {enviando ? "Verificando…" : "Ingresar"}
-          </button>
+          ) : null}
+          <div className={s.acciones}>
+            <button className="btn btn-gold btn-block" disabled={enviando}>
+              {enviando ? "Verificando…" : "Ingresar"}
+            </button>
+          </div>
         </form>
 
         <p className={s.alterno}>
-          ¿No tienes cuenta? <Link href={volver ? `/registro?volver=${encodeURIComponent(volver)}` : "/registro"}>Crea una gratis</Link>
-          <br />
-          ¿Olvidaste tu contraseña? Escríbenos por{" "}
-          <a href="https://wa.me/573223176175" target="_blank" rel="noopener noreferrer">
-            WhatsApp
-          </a>
-          .
+          ¿No tienes cuenta?{" "}
+          <Link href={volver ? `/registro?volver=${encodeURIComponent(volver)}` : "/registro"}>Crea una gratis</Link>
         </p>
 
-        {demo && (
+        {demo ? (
           <div className={s.demo}>
             <b>Modo demostración</b>
             <p>
@@ -144,7 +164,7 @@ export default function IngresarPage() {
               ))}
             </ul>
           </div>
-        )}
+        ) : null}
       </div>
     </div>
   );

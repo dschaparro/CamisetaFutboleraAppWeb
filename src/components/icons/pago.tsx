@@ -5,6 +5,7 @@ import type { ReactNode } from "react";
 type Props = { size?: number; className?: string; title?: string };
 
 function Svg({ size = 20, className, title, children }: Props & { children: ReactNode }) {
+  const px = `${size}px`;
   return (
     <svg
       width={size}
@@ -15,7 +16,9 @@ function Svg({ size = 20, className, title, children }: Props & { children: Reac
       strokeWidth="2"
       strokeLinecap="round"
       strokeLinejoin="round"
+      preserveAspectRatio="xMidYMid meet"
       className={className}
+      style={{ width: px, height: px, minWidth: px, minHeight: px, flexShrink: 0, aspectRatio: "1 / 1" }}
       aria-hidden={title ? undefined : true}
       role={title ? "img" : undefined}
     >
@@ -308,6 +311,53 @@ export function IconoEnviar(p: Props) {
   return (
     <Svg {...p}>
       <path d="m4 12 16-8-6 16-2.5-6.5L4 12z" />
+    </Svg>
+  );
+}
+
+export function IconoWhatsApp(p: Props) {
+  return (
+    <Svg {...p}>
+      <path d="M12 3a9 9 0 0 0-7.8 13.4L3 21l4.8-1.3A9 9 0 1 0 12 3z" />
+      <path d="M9.1 8.7c.2-.4.4-.4.6-.4h.5c.2 0 .3 0 .4.3l.6 1.5c.1.2 0 .3-.1.5l-.3.4c-.1.1-.2.3 0 .5.3.5.9 1.1 1.5 1.4.2.1.4.1.5 0l.5-.3c.2-.1.3 0 .5.1l1.3.8c.2.1.3.3.2.5-.2.6-.9 1.1-1.5 1.1h-.2c-.4 0-2.1-.5-3.5-1.9-1.2-1.1-1.9-2.5-2-3.7 0-.5.2-1 .7-1.3z" />
+    </Svg>
+  );
+}
+
+export function IconoInstagram(p: Props) {
+  return (
+    <Svg {...p}>
+      <rect x="3" y="3" width="18" height="18" rx="5" ry="5" />
+      <circle cx="12" cy="12" r="4" />
+      <circle cx="17.2" cy="6.8" r="1.05" fill="currentColor" stroke="none" />
+    </Svg>
+  );
+}
+
+export function IconoTikTok(p: Props) {
+  return (
+    <Svg {...p}>
+      <path d="M14.5 3.5v10.2a3.5 3.5 0 1 1-2.4-3.3" />
+      <path d="M14.5 3.5c1.1 1.7 2.7 2.8 4.5 3.1v2.4c-1.8-.3-3.4-1.2-4.5-2.5" />
+    </Svg>
+  );
+}
+
+export function IconoDocumento(p: Props) {
+  return (
+    <Svg {...p}>
+      <path d="M8 3h6l4 4v14H8a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2z" />
+      <path d="M14 3v4h4" />
+      <path d="M10 12h6M10 16h6" />
+    </Svg>
+  );
+}
+
+export function IconoEscudo(p: Props) {
+  return (
+    <Svg {...p}>
+      <path d="M12 3 5 6v5c0 4.5 3 7.5 7 9 4-1.5 7-4.5 7-9V6l-7-3z" />
+      <path d="M9.5 12.5 11 14l3.5-3.5" />
     </Svg>
   );
 }

@@ -64,12 +64,20 @@ export default function ProductCard({ p }: { p: ProductoPublico }) {
   );
 }
 
-/** Esqueleto mientras carga el catálogo. */
-export function TarjetasCargando({ n = 4 }: { n?: number }) {
+/** Esqueleto mientras carga el catálogo (usa grid del caller vía className). */
+export function TarjetasCargando({
+  n = 6,
+  className = "product-grid",
+  cardClassName,
+}: {
+  n?: number;
+  className?: string;
+  cardClassName?: string;
+}) {
   return (
-    <div className="product-grid" aria-busy="true" aria-label="Cargando camisetas">
+    <div className={className} aria-busy="true" aria-label="Cargando camisetas">
       {Array.from({ length: n }, (_, i) => (
-        <div key={i} className="product-card cargando-card" />
+        <div key={i} className={cardClassName ?? "product-card cargando-card"} />
       ))}
     </div>
   );

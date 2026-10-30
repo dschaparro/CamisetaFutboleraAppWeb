@@ -490,13 +490,21 @@
   margin-bottom: 6px;
 }
 
-/* Skeleton de Mi cuenta (el anillo CF viene de LoaderMarca) */
+/* Skeleton de Mi cuenta (isotipo + anillo vienen de LoaderMarca) */
 .cargando {
-  padding: 36px 0 72px;
+  padding: 28px 0 72px;
 }
 
 .cargandoEstado {
-  margin-bottom: 22px;
+  margin: 0 auto 24px;
+  padding: 16px 18px;
+  border-radius: var(--radius-m);
+  border: 1px solid var(--border);
+  background: var(--surface);
+  box-shadow: var(--shadow-sm);
+  width: 100%;
+  max-width: 28rem;
+  box-sizing: border-box;
 }
 
 .skelMenu {
