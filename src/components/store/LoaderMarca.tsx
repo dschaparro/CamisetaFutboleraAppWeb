@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import { MARCA_ICONO } from "@/components/BrandMark";
 import s from "./LoaderMarca.module.css";
 
 type Props = {
@@ -10,7 +11,7 @@ type Props = {
   children?: ReactNode;
 };
 
-/** Loader de marca (anillo dorado + CF) para estados de carga de la tienda. */
+/** Loader de marca (anillo dorado + isotipo) para estados de carga de la tienda. */
 export default function LoaderMarca({
   titulo,
   detalle,
@@ -31,7 +32,10 @@ export default function LoaderMarca({
     >
       <div className={s.marca} aria-hidden="true">
         <span className={s.anillo} />
-        <span className={s.logo}>CF</span>
+        {variante !== "inline" ? (
+          // eslint-disable-next-line @next/next/no-img-element -- loader estático, sin layout shift de next/image
+          <img className={s.logo} src={MARCA_ICONO} alt="" width={48} height={48} decoding="async" />
+        ) : null}
       </div>
       <div className={s.texto}>
         <b>{titulo}</b>

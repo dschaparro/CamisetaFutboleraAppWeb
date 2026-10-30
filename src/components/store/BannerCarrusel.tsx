@@ -8,9 +8,8 @@ import type { Banner } from "@/modules/tienda/domain/types";
 const INTERVALO_MS = 7000;
 
 /**
- * Carrusel estilo Disney+: tarjetas grandes de bordes redondeados con la foto a
- * todo el ancho, las vecinas asomándose a los lados, texto sobre un degradado y
- * avance automático (se pausa con el cursor, el teclado o al tocar).
+ * Hero full-bleed cinematográfico: banners del admin a todo el ancho,
+ * tipografía grande, avance automático (pausa con cursor/teclado/tacto).
  */
 export default function BannerCarrusel({ banners }: { banners: Banner[] }) {
   const [actual, setActual] = useState(0);
@@ -30,7 +29,7 @@ export default function BannerCarrusel({ banners }: { banners: Banner[] }) {
 
   return (
     <section
-      className="dp-carrusel"
+      className={`dp-carrusel${pausado ? " pausado" : ""}`}
       aria-roledescription="carrusel"
       aria-label="Promociones destacadas"
       onMouseEnter={() => setPausado(true)}
@@ -55,61 +54,82 @@ export default function BannerCarrusel({ banners }: { banners: Banner[] }) {
       }}
     >
       <div className="dp-viewport">
-        <div className="dp-pista" style={{ transform: `translateX(calc(${-visible} * (100% + var(--dp-espacio))))` }}>
-          {banners.map((b, i) => {
-            const activo = i === visible;
-            return (
-              <div
-                key={b.id}
-                className={`dp-slide${activo ? " activo" : ""}`}
-                role="group"
-                aria-roledescription="diapositiva"
-                aria-label={`${i + 1} de ${n}: ${b.titulo}`}
-                aria-hidden={!activo}
-                style={{ background: `linear-gradient(135deg, ${b.colores[0]}, ${b.colores[1]})` }}
-                onClick={() => !activo && ir(i)}
-              >
-                {b.imagen && <Imagen refImagen={b.imagen} alt="" sizes="(max-width: 760px) 100vw, 92vw" posicion={b.posicion} className="dp-foto" prioridad={i === 0} />}
-                <div
-                  className={`dp-velo ${b.alineacion === "centro" ? "centro" : ""}`}
-                  style={{ ["--dp-oscuro" as string]: String(b.oscurecer / 100) }}
+        {banners.map((b, i) => {
+          const activo = i === visible;
+          return (
+            <div
+              key={b.id}
+              className={`dp-slide${activo ? " activo" : ""}`}
+              role="group"
+              aria-roledescription="diapositiva"
+              aria-label={`${i + 1} de ${n}: ${b.titulo}`}
+              aria-hidden={!activo}
+              style={{ background: `linear-gradient(135deg, ${b.colores[0]}, ${b.colores[1]})` }}
+            >
+              {b.imagen && (
+                <Imagen
+                  refImagen={b.imagen}
+                  alt=""
+                  sizes="100vw"
+                  posicion={b.posicion}
+                  className="dp-foto"
+                  prioridad={i === 0}
                 />
-                <div className={`dp-contenido ${b.alineacion === "centro" ? "centro" : ""}`}>
-                  {b.antetitulo && (
-                    <div className="dp-antetitulo" style={{ color: b.acento }}>
-                      {b.antetitulo}
-                    </div>
-                  )}
-                  <h2 className="dp-titulo">{b.titulo}</h2>
-                  {b.texto && <p className="dp-texto">{b.texto}</p>}
-                  <Link className="dp-boton" href={b.enlace} tabIndex={activo ? 0 : -1} style={{ background: b.acento }}>
-                    {b.boton} →
-                  </Link>
-                </div>
-                {!b.imagen && b.insignia && (
-                  <div className="dp-insignia" aria-hidden="true" style={{ borderColor: b.acento }}>
-                    {b.insignia}
+              )}
+              <div
+                className={`dp-velo ${b.alineacion === "centro" ? "centro" : ""}`}
+                style={{ ["--dp-oscuro" as string]: String(Math.max(b.oscurecer / 100, 0.35)) }}
+              />
+              <div className={`dp-contenido ${b.alineacion === "centro" ? "centro" : ""}`}>
+                <p className="dp-marca">Camiseta Futbolera</p>
+                {b.antetitulo && (
+                  <div className="dp-antetitulo" style={{ color: b.acento }}>
+                    {b.antetitulo}
                   </div>
                 )}
-                <Credito refImagen={b.imagen} className="credito dp-credito" />
+                <h2 className="dp-titulo">{b.titulo}</h2>
+                {b.texto && <p className="dp-texto">{b.texto}</p>}
+                <Link
+                  className="dp-boton"
+                  href={b.enlace}
+                  tabIndex={activo ? 0 : -1}
+                  style={{ background: b.acento }}
+                >
+                  {b.boton}
+                </Link>
               </div>
-            );
-          })}
-        </div>
+              {!b.imagen && b.insignia && (
+                <div className="dp-insignia" aria-hidden="true" style={{ borderColor: b.acento }}>
+                  {b.insignia}
+                </div>
+              )}
+              <Credito refImagen={b.imagen} className="credito dp-credito" />
+            </div>
+          );
+        })}
       </div>
 
       {n > 1 && (
         <>
-          <button className="dp-flecha izq" onClick={() => ir(visible - 1)} aria-label="Anterior">
+          <button type="button" className="dp-flecha izq" onClick={() => ir(visible - 1)} aria-label="Anterior">
             ‹
           </button>
-          <button className="dp-flecha der" onClick={() => ir(visible + 1)} aria-label="Siguiente">
+          <button type="button" className="dp-flecha der" onClick={() => ir(visible + 1)} aria-label="Siguiente">
             ›
           </button>
           <div className="dp-puntos">
             {banners.map((b, i) => (
-              <button key={b.id} className={i === visible ? "activo" : ""} onClick={() => ir(i)} aria-label={`Ir a ${b.titulo}`} aria-current={i === visible}>
-                {i === visible && !pausado && <span className="dp-progreso" style={{ animationDuration: `${INTERVALO_MS}ms` }} />}
+              <button
+                key={b.id}
+                type="button"
+                className={i === visible ? "activo" : ""}
+                onClick={() => ir(i)}
+                aria-label={`Ir a ${b.titulo}`}
+                aria-current={i === visible ? true : undefined}
+              >
+                {i === visible && !pausado && (
+                  <span className="dp-progreso" style={{ animationDuration: `${INTERVALO_MS}ms` }} />
+                )}
               </button>
             ))}
           </div>

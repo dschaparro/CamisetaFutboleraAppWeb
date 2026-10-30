@@ -1,4 +1,4 @@
-/** Utilidades de tarjetas compartidas por la pasarela simulada y «Formas de pago». */
+/** Utilidades de tarjetas para la pasarela simulada (pago en línea real = Mercado Pago). */
 
 export type MarcaTarjeta = "Visa" | "Mastercard" | "American Express" | "Tarjeta";
 

@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
+import BrandMark from "@/components/BrandMark";
 import ThemeToggle from "@/components/ThemeToggle";
 import { modulosDe } from "@/modules/identidad/domain/permisos";
 import type { Rol } from "@/modules/identidad/domain/types";
@@ -66,7 +67,7 @@ export default function Sidebar() {
     <aside className="admin-sidebar">
       <div className="brand" style={{ justifyContent: "space-between" }}>
         <span style={{ display: "flex", alignItems: "center", gap: 10 }}>
-          <span className="mark">CF</span>
+          <BrandMark size={34} />
           <span>CAMISETA FUTBOLERA<small>Panel administrativo</small></span>
         </span>
         <ThemeToggle />

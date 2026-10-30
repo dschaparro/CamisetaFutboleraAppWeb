@@ -1,44 +1,68 @@
+import Link from "next/link";
+import LegalNav from "@/components/store/LegalNav";
+import s from "@/components/store/legal.module.css";
+
 export default function TerminosPage() {
   return (
-    <div className="wrap terms-layout">
-      <div className="eyebrow">Términos y condiciones</div>
-      <h1 style={{ fontFamily: "var(--font-body)", fontSize: "1.7rem", fontWeight: 800, margin: "10px 0 6px" }}>
-        Cambios y devoluciones
-      </h1>
-      <p style={{ color: "var(--ink-mute)" }}>
-        Estas son las reglas vigentes de Camiseta Futbolera. Si necesitas hacer un cambio o
-        devolución, contáctanos directamente por WhatsApp y un asesor te guía en todo el proceso.
-      </p>
-
-      <div className="terms-block">
-        <h3>Defecto de fábrica</h3>
-        <p>
-          Si tu camiseta llega con un defecto de fábrica, nosotros asumimos el costo de los envíos
-          de recogida y reenvío. Escríbenos por WhatsApp con fotos del defecto y coordinamos todo.
+    <div className={`wrap ${s.page}`}>
+      <header className={s.cabeza}>
+        <p className={s.eyebrow}>Ayuda</p>
+        <h1 className={s.titulo}>Términos y cambios</h1>
+        <p className={s.lead}>
+          Reglas vigentes de Camiseta Futbolera. Si necesitas un cambio o devolución, te guiamos por WhatsApp.
         </p>
-      </div>
-      <div className="terms-block">
-        <h3>Cambio de talla</h3>
-        <p>
-          Si necesitas cambiar la talla, el costo de los envíos lo asume el cliente: $16.000 en
-          Bogotá, o el valor real del envío fuera de Bogotá. Coordinamos la recogida por WhatsApp.
-        </p>
-      </div>
-      <div className="terms-block">
-        <h3>Condiciones para aceptar el cambio</h3>
-        <ul>
-          <li>Sin uso ni daño</li>
-          <li>Sin lavar</li>
-          <li>Con su empaque y etiqueta originales</li>
-        </ul>
-      </div>
+      </header>
 
-      <div className="wa-cta">
-        <h3>¿Necesitas hacer un cambio o devolución?</h3>
-        <p>Escríbele directo a un asesor por WhatsApp — con un clic te llevamos al chat.</p>
-        <a className="btn btn-gold" href="https://wa.me/573223176175" target="_blank" rel="noopener noreferrer">
-          Contactar asesor por WhatsApp
-        </a>
+      <div className={s.layout}>
+        <LegalNav actual="/terminos" />
+
+        <div className={s.contenido}>
+          <ol className={s.secciones}>
+            <li className={s.seccion}>
+              <h2>Defecto de fábrica</h2>
+              <div className={s.seccionBody}>
+                <p>
+                  Si tu camiseta llega con un defecto de fábrica, asumimos el costo de los envíos de recogida y
+                  reenvío. Escríbenos por WhatsApp con fotos del defecto y coordinamos todo.
+                </p>
+              </div>
+            </li>
+
+            <li className={s.seccion}>
+              <h2>Cambio de talla</h2>
+              <div className={s.seccionBody}>
+                <p>
+                  Si necesitas cambiar la talla, el costo de los envíos lo asume el cliente: $16.000 en Bogotá, o el
+                  valor real del envío fuera de Bogotá. Coordinamos la recogida por WhatsApp.
+                </p>
+              </div>
+            </li>
+
+            <li className={s.seccion}>
+              <h2>Condiciones para aceptar el cambio</h2>
+              <div className={s.seccionBody}>
+                <ul>
+                  <li>Sin uso ni daño</li>
+                  <li>Sin lavar</li>
+                  <li>Con su empaque y etiqueta originales</li>
+                </ul>
+              </div>
+            </li>
+          </ol>
+
+          <div className={s.cta}>
+            <h2>¿Necesitas un cambio o devolución?</h2>
+            <p>Un asesor te guía en todo el proceso. También puedes revisar envíos y privacidad.</p>
+            <div className={s.ctaAcciones}>
+              <a className="btn btn-gold" href="https://wa.me/573223176175" target="_blank" rel="noopener noreferrer">
+                WhatsApp
+              </a>
+              <Link className={s.ctaSecundario} href="/envios">
+                Ver envíos
+              </Link>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   );

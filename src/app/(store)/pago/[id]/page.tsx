@@ -16,6 +16,7 @@ import {
 } from "@/components/icons/pago";
 import LoaderMarca from "@/components/store/LoaderMarca";
 import s from "@/components/store/pago.module.css";
+import { useCart } from "@/context/CartContext";
 import { useToast } from "@/context/ToastContext";
 import { money } from "@/lib/money";
 import type { Pedido } from "@/modules/pedidos/domain/types";
@@ -71,6 +72,7 @@ export default function PagoPage({
   const { k = "", mp: mpEstado } = use(searchParams);
   const router = useRouter();
   const { toast } = useToast();
+  const { clear } = useCart();
 
   const [pedido, setPedido] = useState<Pedido | null>(null);
   const [monto, setMonto] = useState(0);
@@ -189,6 +191,7 @@ export default function PagoPage({
       }
       setResultado(d);
       if (d.aprobado) {
+        clear();
         toast({ variant: "ok", titulo: "¡Pago aprobado!", detalle: "Preparando tu confirmación…" });
         setTimeout(() => router.push(confirmacion), 1400);
       }

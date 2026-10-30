@@ -1,0 +1,529 @@
+/* Catálogo / Ofertas: mismo ritmo editorial que el home. */
+
+.page {
+  padding-bottom: 40px;
+}
+
+.cabeza {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 20px;
+  flex-wrap: wrap;
+  margin: clamp(28px, 4vw, 44px) 0 22px;
+}
+.cabezaTexto {
+  display: grid;
+  gap: 8px;
+  max-width: 42rem;
+}
+.cabeza .eyebrow {
+  margin: 0;
+}
+.cabeza h1,
+.cabeza h2 {
+  margin: 0;
+  font-size: clamp(1.55rem, 2.8vw, 2.25rem);
+  line-height: 1.22;
+  letter-spacing: 0.01em;
+  text-transform: uppercase;
+}
+.nota {
+  margin: 0;
+  color: var(--ink-mute);
+  font-size: 0.92rem;
+  line-height: 1.4;
+  max-width: 48ch;
+}
+.linkMas {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-weight: 800;
+  font-size: 0.86rem;
+  color: var(--ink);
+  border-bottom: 1px solid color-mix(in srgb, var(--ink) 22%, transparent);
+  padding-bottom: 3px;
+  transition: color 0.15s ease, border-color 0.15s ease, gap 0.15s ease;
+  white-space: nowrap;
+}
+.linkMas:hover {
+  color: var(--gold-ink);
+  border-color: var(--gold);
+  gap: 10px;
+}
+.linkMas::after {
+  content: "→";
+  transition: transform 0.15s ease;
+}
+.linkMas:hover::after {
+  transform: translateX(2px);
+}
+
+/* Ligas bento */
+.ligas {
+  display: grid;
+  grid-template-columns: repeat(12, 1fr);
+  gap: clamp(12px, 1.4vw, 16px);
+}
+.liga {
+  position: relative;
+  overflow: hidden;
+  grid-column: span 4;
+  min-height: 240px;
+  border-radius: var(--radius-m);
+  padding: 22px 18px;
+  color: #fff;
+  display: grid;
+  align-content: end;
+  gap: 6px;
+  text-shadow: 0 1px 6px rgba(0, 0, 0, 0.45);
+  content-visibility: auto;
+  contain-intrinsic-size: auto 260px;
+  transition: transform 0.28s ease;
+}
+.liga:nth-child(-n + 2) {
+  grid-column: span 6;
+  min-height: 300px;
+  padding: 28px 24px;
+}
+.liga:hover {
+  transform: translateY(-3px);
+}
+.ligaFoto {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  transition: transform 0.85s cubic-bezier(0.22, 0.61, 0.36, 1);
+}
+.liga:hover .ligaFoto {
+  transform: scale(1.07);
+}
+.ligaVelo {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    0deg,
+    rgba(5, 10, 17, 0.78) 0%,
+    rgba(5, 10, 17, 0.2) 55%,
+    rgba(5, 10, 17, 0.3) 100%
+  ) !important;
+}
+.ligaPais,
+.liga b,
+.liga p,
+.ligaPie,
+.ligaIr {
+  position: relative;
+  z-index: 1;
+}
+.ligaPais {
+  margin: 0;
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  opacity: 0.9;
+}
+.liga b {
+  font-family: var(--font-display);
+  font-size: clamp(1.35rem, 2.2vw, 1.85rem);
+  font-weight: 700;
+  line-height: 1.18;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+}
+.liga:nth-child(-n + 2) b {
+  font-size: clamp(1.55rem, 2.6vw, 2.15rem);
+}
+.liga p {
+  margin: 0;
+  font-size: 0.86rem;
+  opacity: 0.9;
+  max-width: 36ch;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.ligaPie {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  margin-top: 8px;
+  font-size: 0.8rem;
+  opacity: 0.92;
+}
+.ligaIr {
+  font-size: 0.78rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  opacity: 0;
+  transform: translateY(6px);
+  transition: opacity 0.2s ease, transform 0.2s ease;
+}
+.liga:hover .ligaIr,
+.liga:focus-visible .ligaIr {
+  opacity: 1;
+  transform: none;
+}
+
+@media (max-width: 900px) {
+  .liga,
+  .liga:nth-child(-n + 2) {
+    grid-column: span 6;
+    min-height: 220px;
+  }
+}
+@media (max-width: 560px) {
+  .ligas {
+    grid-template-columns: 1fr;
+  }
+  .liga,
+  .liga:nth-child(-n + 2) {
+    grid-column: auto;
+    min-height: 200px;
+  }
+  .ligaIr {
+    opacity: 0.85;
+    transform: none;
+  }
+}
+
+/* Clubes */
+.clubes {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: clamp(10px, 1.2vw, 16px);
+}
+.clubCard {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-m);
+  padding: 16px 10px 14px;
+  display: grid;
+  justify-items: center;
+  gap: 10px;
+  text-align: center;
+  color: var(--ink);
+  transition: border-color 0.15s ease, transform 0.15s ease, box-shadow 0.15s ease;
+}
+.clubCard:hover {
+  border-color: var(--gold);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-sm);
+}
+.clubEscudo {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  overflow: hidden;
+  display: grid;
+  place-items: center;
+  background: #fff;
+  padding: 8px;
+  box-shadow: var(--shadow-sm);
+  transition: transform 0.2s ease;
+}
+.clubCard:hover .clubEscudo {
+  transform: scale(1.06);
+}
+.clubEscudo :global(.escudo-img),
+.clubEscudo :global(img),
+.clubEscudo :global(.product-foto-mini),
+.clubEscudo :global(.crest-mini) {
+  width: 100% !important;
+  height: 100% !important;
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+  display: block;
+}
+.clubCard b {
+  font-size: 0.8rem;
+  line-height: 1.25;
+  font-weight: 700;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  max-width: 100%;
+}
+@media (max-width: 720px) {
+  .clubes {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+@media (max-width: 480px) {
+  .clubes {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+/* Cabecera de listado (sin banda oscura vacía) */
+.metaResultados {
+  margin: 0;
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: var(--ink-mute);
+}
+.acentoLiga {
+  display: block;
+  width: 48px;
+  height: 4px;
+  border-radius: 2px;
+  margin-bottom: 2px;
+  background: var(--gold);
+}
+
+/* Filtros */
+.filtros {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  align-items: center;
+  margin: clamp(14px, 2vw, 22px) 0 18px;
+  padding: 10px 12px;
+  background: var(--surface);
+  border: 1px solid var(--border-soft);
+  border-radius: var(--radius-m);
+}
+.buscar {
+  flex: 1;
+  min-width: 180px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-s);
+  padding: 9px 12px;
+  color: var(--ink-mute);
+  background: var(--surface-2);
+}
+.buscar input {
+  border: none;
+  outline: none;
+  background: none;
+  width: 100%;
+  color: var(--ink);
+  font-size: 0.85rem;
+}
+
+/* Productos: cards con tope de ancho (pocas ofertas no se estiran) */
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 240px), 1fr));
+  gap: clamp(16px, 2vw, 24px);
+  justify-content: start;
+}
+.grid :global(.product-card) {
+  border: none;
+  background: transparent;
+  border-radius: 0;
+  box-shadow: none;
+  max-width: 320px;
+  width: 100%;
+  content-visibility: auto;
+  contain-intrinsic-size: auto 420px;
+  transition: transform 0.3s ease;
+}
+.grid :global(.product-card:hover) {
+  transform: translateY(-4px);
+  box-shadow: none;
+  border-color: transparent;
+}
+.grid :global(.product-media) {
+  border-radius: var(--radius-m);
+  overflow: hidden;
+  background: var(--surface-2);
+  aspect-ratio: 4 / 5;
+}
+.grid :global(.product-body) {
+  padding: 14px 2px 4px;
+}
+.grid :global(.product-media .product-foto) {
+  transition: transform 0.85s cubic-bezier(0.22, 0.61, 0.36, 1);
+}
+.grid :global(.product-card:hover .product-foto) {
+  transform: scale(1.07);
+}
+@media (max-width: 480px) {
+  .grid :global(.product-card) {
+    max-width: none;
+  }
+}
+
+/* Skeletons */
+.shimmer {
+  background: linear-gradient(
+    100deg,
+    var(--surface-2) 30%,
+    color-mix(in srgb, var(--surface) 80%, #fff) 50%,
+    var(--surface-2) 70%
+  );
+  background-size: 220% 100%;
+  animation: cat-brillo 1.25s linear infinite;
+  border-radius: var(--radius-s);
+}
+@keyframes cat-brillo {
+  from {
+    background-position: 200% 0;
+  }
+  to {
+    background-position: -200% 0;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .shimmer {
+    animation: none;
+  }
+}
+
+.skelLigas {
+  display: grid;
+  grid-template-columns: repeat(12, 1fr);
+  gap: clamp(12px, 1.4vw, 16px);
+}
+.skelLiga {
+  grid-column: span 4;
+  min-height: 220px;
+  border-radius: var(--radius-m);
+}
+.skelLiga:nth-child(-n + 2) {
+  grid-column: span 6;
+  min-height: 280px;
+}
+@media (max-width: 900px) {
+  .skelLiga,
+  .skelLiga:nth-child(-n + 2) {
+    grid-column: span 6;
+    min-height: 200px;
+  }
+}
+@media (max-width: 560px) {
+  .skelLigas {
+    grid-template-columns: 1fr;
+  }
+  .skelLiga,
+  .skelLiga:nth-child(-n + 2) {
+    grid-column: auto;
+  }
+}
+
+.skelClubes {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: clamp(10px, 1.2vw, 16px);
+  margin-top: 8px;
+}
+.skelClub {
+  display: grid;
+  justify-items: center;
+  gap: 10px;
+  padding: 16px 10px;
+  border: 1px solid var(--border-soft);
+  border-radius: var(--radius-m);
+  background: var(--surface);
+}
+.skelClubIco {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+}
+.skelClubLine {
+  height: 12px;
+  width: 70%;
+  border-radius: 6px;
+}
+@media (max-width: 720px) {
+  .skelClubes {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+@media (max-width: 480px) {
+  .skelClubes {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+.skelCard {
+  display: grid;
+  gap: 12px;
+  max-width: 320px;
+  width: 100%;
+}
+.skelMedia {
+  aspect-ratio: 4 / 5;
+  border-radius: var(--radius-m);
+}
+.skelLine {
+  height: 12px;
+  border-radius: 6px;
+}
+.skelLineSm {
+  height: 10px;
+  width: 55%;
+  border-radius: 6px;
+}
+.skelLineLg {
+  height: 14px;
+  width: 80%;
+  border-radius: 6px;
+}
+
+.filtrosSticky {
+  position: sticky;
+  top: 72px;
+  z-index: 5;
+  margin-inline: -4px;
+  padding: 10px 12px;
+  border-radius: var(--radius-m);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  background: color-mix(in srgb, var(--bg) 82%, transparent);
+  border: 1px solid var(--border-soft);
+}
+
+.otras {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+  margin: clamp(32px, 4vw, 48px) 0 12px;
+  font-size: 0.85rem;
+  color: var(--ink-mute);
+}
+.otrasLabel {
+  font-weight: 700;
+  color: var(--ink-soft);
+  margin-right: 4px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .liga,
+  .ligaFoto,
+  .ligaIr,
+  .clubCard,
+  .clubEscudo,
+  .grid :global(.product-card),
+  .grid :global(.product-media .product-foto) {
+    transition: none;
+  }
+  .liga:hover,
+  .clubCard:hover,
+  .grid :global(.product-card:hover) {
+    transform: none;
+  }
+  .liga:hover .ligaFoto,
+  .clubCard:hover .clubEscudo,
+  .grid :global(.product-card:hover .product-foto) {
+    transform: none;
+  }
+  .ligaIr {
+    opacity: 0.85;
+    transform: none;
+  }
+}

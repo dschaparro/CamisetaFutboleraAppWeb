@@ -5,7 +5,6 @@ import { Suspense, useEffect, useState, type ReactNode } from "react";
 import s from "@/components/store/cuenta.module.css";
 import SeccionDatos from "@/components/store/cuenta/SeccionDatos";
 import SeccionDirecciones from "@/components/store/cuenta/SeccionDirecciones";
-import SeccionPagos from "@/components/store/cuenta/SeccionPagos";
 import SeccionPedidos from "@/components/store/cuenta/SeccionPedidos";
 import SeccionSeguridad from "@/components/store/cuenta/SeccionSeguridad";
 import LoaderMarca from "@/components/store/LoaderMarca";
@@ -13,7 +12,6 @@ import {
   IconoCandado,
   IconoPedido,
   IconoSalir,
-  IconoTarjeta,
   IconoUbicacion,
   IconoUsuario,
 } from "@/components/icons/pago";
@@ -27,10 +25,9 @@ const SECCIONES: readonly { id: string; label: string; icono: ReactNode }[] = [
   { id: "pedidos", label: "Mis pedidos", icono: <IconoPedido size={18} /> },
   { id: "datos", label: "Mis datos", icono: <IconoUsuario size={18} /> },
   { id: "direcciones", label: "Direcciones", icono: <IconoUbicacion size={18} /> },
-  { id: "pagos", label: "Formas de pago", icono: <IconoTarjeta size={18} /> },
   { id: "seguridad", label: "Contraseña", icono: <IconoCandado size={18} /> },
 ];
-export type SeccionCuenta = "pedidos" | "datos" | "direcciones" | "pagos" | "seguridad";
+export type SeccionCuenta = "pedidos" | "datos" | "direcciones" | "seguridad";
 
 function parseSeccion(raw: string | null | undefined): SeccionCuenta | null {
   if (!raw) return null;
@@ -58,7 +55,7 @@ function CuentaCargando() {
 
         <div className={s.grid} aria-hidden="true">
           <nav className={`card ${s.skelMenu}`}>
-            {Array.from({ length: 5 }, (_, i) => (
+            {Array.from({ length: 4 }, (_, i) => (
               <span key={i} className={`skel-bone ${s.skelMenuItem}`} />
             ))}
           </nav>
@@ -74,13 +71,11 @@ function CuentaCargando() {
   );
 }
 
-/** Query `?seccion=` (preferido) o hash legacy `#pagos`. */
+/** Query `?seccion=` (preferido) o hash legacy. `pagos` redirige a pedidos (Mercado Pago es externo). */
 function seccionDesdeUrl(searchParams: URLSearchParams): SeccionCuenta {
-  return (
-    parseSeccion(searchParams.get("seccion")) ??
-    parseSeccion(typeof window !== "undefined" ? window.location.hash.slice(1) : null) ??
-    "pedidos"
-  );
+  const raw = searchParams.get("seccion") ?? (typeof window !== "undefined" ? window.location.hash.slice(1) : null);
+  if (raw === "pagos") return "pedidos";
+  return parseSeccion(raw) ?? "pedidos";
 }
 
 function CuentaVista() {
@@ -91,8 +86,13 @@ function CuentaVista() {
   const seccion = seccionDesdeUrl(searchParams);
 
   useEffect(() => {
-    // Migra bookmarks con hash (#pagos) a ?seccion= para que el menú del header funcione.
-    if (!searchParams.get("seccion") && typeof window !== "undefined" && window.location.hash.slice(1) === seccion) {
+    const raw = searchParams.get("seccion");
+    if (raw === "pagos") {
+      router.replace("/cuenta?seccion=pedidos", { scroll: false });
+      return;
+    }
+    // Migra bookmarks con hash a ?seccion= para que el menú del header funcione.
+    if (!raw && typeof window !== "undefined" && window.location.hash.slice(1) === seccion) {
       router.replace(`/cuenta?seccion=${seccion}`, { scroll: false });
     }
   }, [searchParams, router, seccion]);
@@ -199,9 +199,6 @@ function CuentaVista() {
                 telefonoCliente={cliente.telefono}
                 onPerfil={setPerfil}
               />
-            )}
-            {seccion === "pagos" && (
-              <SeccionPagos tarjetas={perfil.tarjetas} nombreCliente={cliente.nombre} onPerfil={setPerfil} />
             )}
             {seccion === "seguridad" && <SeccionSeguridad />}
           </section>

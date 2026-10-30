@@ -1,4 +1,5 @@
 import type { AccionChat, ProductoTienda } from "@/modules/asistente/domain/types";
+import { CARRITO_MAX_CANTIDAD_MAX } from "@/modules/tienda/domain/types";
 
 /** Separa el texto de las acciones en la respuesta en streaming (carácter que el modelo no escribe). */
 export const SEPARADOR_ACCIONES = "\u001e";
@@ -19,13 +20,11 @@ export const DESTINOS: Record<string, string> = {
   "/cuenta?seccion=pedidos": "Mis pedidos",
   "/cuenta?seccion=datos": "Mis datos",
   "/cuenta?seccion=direcciones": "Mis direcciones",
-  "/cuenta?seccion=pagos": "Mis formas de pago",
   "/cuenta?seccion=seguridad": "Cambiar contraseña",
   // Hash legacy (por si el modelo aún lo sugiere)
   "/cuenta#pedidos": "Mis pedidos",
   "/cuenta#datos": "Mis datos",
   "/cuenta#direcciones": "Mis direcciones",
-  "/cuenta#pagos": "Mis formas de pago",
   "/cuenta#seguridad": "Cambiar contraseña",
   "/terminos": "Cambios y devoluciones",
   "/ingresar": "Ingresar a mi cuenta",
@@ -40,7 +39,7 @@ export const HERRAMIENTAS = [
   {
     name: "abrir_pagina",
     description:
-      "Muestra al cliente un botón para ir a una página de la tienda. Úsala cuando quiera ver una camiseta, su carrito, pagar, sus pedidos, direcciones, formas de pago, cambiar contraseña, ingresar o ver las políticas.",
+      "Muestra al cliente un botón para ir a una página de la tienda. Úsala cuando quiera ver una camiseta, su carrito, pagar, sus pedidos, direcciones, cambiar contraseña, ingresar o ver las políticas.",
     input_schema: {
       type: "object" as const,
       properties: {
@@ -62,7 +61,7 @@ export const HERRAMIENTAS = [
         slug: { type: "string", description: "Slug exacto del catálogo." },
         talla: { type: "string", enum: TALLAS },
         manga: { type: "string", enum: MANGAS, description: "Corta si el cliente no dijo nada." },
-        cantidad: { type: "integer", minimum: 1, maximum: 10 },
+        cantidad: { type: "integer", minimum: 1, maximum: CARRITO_MAX_CANTIDAD_MAX },
       },
       required: ["slug", "talla", "manga", "cantidad"],
     },
@@ -94,7 +93,14 @@ export function validarAccion(nombre: string, input: unknown, catalogo: Producto
     if (!p || p.disponibilidad === "agotado") return null;
     if (typeof input.talla !== "string" || !TALLAS.includes(input.talla)) return null;
     const manga = typeof input.manga === "string" && MANGAS.includes(input.manga) ? input.manga : "Corta";
-    if (typeof cantidad !== "number" || !Number.isInteger(cantidad) || cantidad < 1 || cantidad > 10) return null;
+    if (
+      typeof cantidad !== "number" ||
+      !Number.isInteger(cantidad) ||
+      cantidad < 1 ||
+      cantidad > CARRITO_MAX_CANTIDAD_MAX
+    ) {
+      return null;
+    }
     const nombreCorto = p.nombre.replace(/^Camiseta /, "");
     return {
       tipo: "carrito",

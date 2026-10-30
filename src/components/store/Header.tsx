@@ -1,18 +1,41 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useId, useRef, useState } from "react";
 import { useCart } from "@/context/CartContext";
+import BrandMark from "@/components/BrandMark";
 import ThemeToggle from "@/components/ThemeToggle";
 import SearchBox from "@/components/store/SearchBox";
 
-const NAV = [
-  { href: "/", label: "Inicio", match: (p: string) => p === "/" },
-  { href: "/catalogo", label: "Catálogo", match: (p: string) => p.startsWith("/catalogo") },
-  { href: "/catalogo/todas?ofertas=1", label: "Ofertas", match: () => false },
-  { href: "/personalizar", label: "Personalizar", match: (p: string) => p.startsWith("/personalizar") },
-  { href: "/cuenta", label: "Cuenta", match: (p: string) => p.startsWith("/cuenta") },
+function enOfertas(pathname: string, ofertas: string | null) {
+  return pathname === "/catalogo/todas" && ofertas === "1";
+}
+
+const NAV: { href: string; label: string; match: (p: string, ofertas: string | null) => boolean }[] = [
+  { href: "/", label: "Inicio", match: (p) => p === "/" },
+  {
+    href: "/catalogo",
+    label: "Catálogo",
+    match: (p, ofertas) => p.startsWith("/catalogo") && !enOfertas(p, ofertas),
+  },
+  {
+    href: "/catalogo/todas?ofertas=1",
+    label: "Ofertas",
+    match: (p, ofertas) => enOfertas(p, ofertas),
+  },
+  { href: "/personalizar", label: "Personalizar", match: (p) => p.startsWith("/personalizar") },
+];
+
+const AVISOS = [
+  "Envíos a toda Colombia",
+  "Personaliza con parche y dorsal",
+  "Estampado incluido en el precio",
+  "Pago seguro · Mercado Pago",
+  "Contra entrega disponible",
+  "Atención por WhatsApp",
+  "Camisetas oficiales y réplicas",
+  "Ofertas de temporada",
 ] as const;
 
 function IconoBuscar() {
@@ -38,6 +61,8 @@ function IconoCarrito() {
 export default function Header() {
   const { count, vaciarLocal } = useCart();
   const pathname = usePathname();
+  const searchParams = useSearchParams();
+  const ofertasParam = searchParams.get("ofertas");
   const router = useRouter();
   const [cliente, setCliente] = useState<{ nombre: string } | null>(null);
   const [menu, setMenu] = useState(false);
@@ -108,7 +133,7 @@ export default function Header() {
         key={item.href}
         ref={conFoco && i === 0 ? primerLink : undefined}
         href={item.href}
-        className={item.match(pathname) ? "current" : undefined}
+        className={item.match(pathname, ofertasParam) ? "current" : undefined}
         onClick={() => setNavAbierta(false)}
       >
         {item.label}
@@ -121,10 +146,17 @@ export default function Header() {
       <a href="#contenido-principal" className="skip-link">
         Saltar al contenido
       </a>
-      <div className="topline">
-        <div className="wrap">
-          <span>Envíos a toda Colombia · Personaliza con parche y dorsal</span>
-          <span className="topline-pago">Pago seguro · En línea o contra entrega</span>
+      <div className="topline topline-marquee" aria-label="Avisos de la tienda">
+        <div className="topline-marquee-track">
+          {[0, 1].map((copia) => (
+            <div key={copia} className="topline-marquee-grupo" aria-hidden={copia === 1 ? true : undefined}>
+              {AVISOS.map((msg) => (
+                <span key={`${copia}-${msg}`} className="topline-marquee-item">
+                  {msg}
+                </span>
+              ))}
+            </div>
+          ))}
         </div>
       </div>
       <div className="mainline">
@@ -144,7 +176,7 @@ export default function Header() {
           </button>
 
           <Link href="/" className="brand" onClick={() => setNavAbierta(false)}>
-            <span className="mark">CF</span>
+            <BrandMark size={34} priority />
             <span className="brand-name">Camiseta Futbolera</span>
           </Link>
 
@@ -192,7 +224,6 @@ export default function Header() {
                       ["pedidos", "Mis pedidos"],
                       ["datos", "Mis datos"],
                       ["direcciones", "Direcciones"],
-                      ["pagos", "Formas de pago"],
                       ["seguridad", "Cambiar contraseña"],
                     ].map(([id, label]) => (
                       <Link
@@ -249,7 +280,7 @@ export default function Header() {
         </div>
         <div className="store-nav store-nav-mob">{links(true)}</div>
         <Link href="/terminos" className="nav-drawer-extra" onClick={() => setNavAbierta(false)}>
-          Ayuda y términos
+          Ayuda · Términos y envíos
         </Link>
         <div className="nav-drawer-pie">
           {cliente ? (

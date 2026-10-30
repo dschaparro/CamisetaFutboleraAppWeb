@@ -2,6 +2,7 @@
 
 import { FormEvent, useState } from "react";
 import { useRouter } from "next/navigation";
+import BrandMark from "@/components/BrandMark";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -37,7 +38,7 @@ export default function LoginPage() {
   return (
     <div className="login-shell">
       <div className="login-visual">
-        <div className="mark-lg">CF</div>
+        <BrandMark size={72} className="mark-lg" priority />
         <h2>Panel administrativo Camiseta Futbolera</h2>
         <p>Gestiona catálogo, inventario, compras a proveedores, pedidos y reportes desde un solo lugar.</p>
         <div className="login-feat">

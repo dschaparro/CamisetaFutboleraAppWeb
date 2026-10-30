@@ -1,12 +1,40 @@
 "use client";
 
 import Link from "next/link";
-import Imagen, { Credito } from "@/components/store/Imagen";
+import Imagen from "@/components/store/Imagen";
 import { EscudoImg, ImagenProducto } from "@/components/store/ProductCard";
+import Reveal from "@/components/store/Reveal";
 import { useCatalogo } from "@/components/store/useCatalogo";
 import { money } from "@/lib/money";
+import s from "@/components/store/catalogo.module.css";
 
-/** Catálogo: tarjetas grandes por liga y, debajo, por club. */
+function EsqueletoCatalogo() {
+  return (
+    <div aria-busy="true" aria-label="Cargando catálogo">
+      <div className={s.skelLigas}>
+        {[1, 2, 3, 4, 5].map((i) => (
+          <div key={i} className={`${s.skelLiga} ${s.shimmer}`} />
+        ))}
+      </div>
+      <div className={s.cabeza} style={{ marginTop: 36 }}>
+        <div className={s.cabezaTexto}>
+          <div className={`${s.shimmer} ${s.skelLineSm}`} style={{ width: 72 }} />
+          <div className={`${s.shimmer} ${s.skelLineLg}`} style={{ height: 28, width: 160 }} />
+        </div>
+      </div>
+      <div className={s.skelClubes}>
+        {Array.from({ length: 8 }, (_, i) => (
+          <div key={i} className={s.skelClub}>
+            <div className={`${s.skelClubIco} ${s.shimmer}`} />
+            <div className={`${s.skelClubLine} ${s.shimmer}`} />
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+/** Catálogo: ligas en bento + clubes, mismo ritmo que el home. */
 export default function CatalogoPage() {
   const { catalogo, error } = useCatalogo();
   const productos = catalogo?.productos ?? [];
@@ -14,71 +42,111 @@ export default function CatalogoPage() {
   const ligas = (catalogo?.ligas ?? [])
     .map((l) => {
       const de = productos.filter((p) => p.ligaId === l.id);
-      return { ...l, cantidad: de.length, desde: de.length ? Math.min(...de.map((p) => p.precioFinal)) : null, clubes: [...new Set(de.map((p) => p.club))] };
+      return {
+        ...l,
+        cantidad: de.length,
+        desde: de.length ? Math.min(...de.map((p) => p.precioFinal)) : null,
+      };
     })
     .filter((l) => l.cantidad > 0);
 
   const clubes = [...new Map(productos.map((p) => [p.club, p])).values()];
 
   return (
-    <div className="wrap">
-      <div className="section-head" style={{ marginTop: 34 }}>
-        <div>
-          <div className="eyebrow">Catálogo</div>
-          <h2>Elige tu liga</h2>
-          <p className="section-note">Encuentra la camiseta de tu equipo por liga o por club.</p>
+    <div className={`wrap ${s.page}`}>
+      <header className={s.cabeza}>
+        <div className={s.cabezaTexto}>
+          <p className="eyebrow">Explora</p>
+          <h1>Elige tu liga</h1>
+          <p className={s.nota}>Camisetas de club y selección. Filtra por liga o ve directo a tu equipo.</p>
         </div>
-        <Link className="btn btn-outline btn-sm" href="/catalogo/todas">
-          Ver todas las camisetas →
+        <Link className={s.linkMas} href="/catalogo/todas">
+          Ver todas
         </Link>
-      </div>
+      </header>
 
-      {error && <div className="card" style={{ padding: 20 }}>No pudimos cargar el catálogo. Recarga la página.</div>}
-      {!catalogo && !error && <div className="ligas-grid">{[1, 2, 3].map((i) => <div key={i} className="liga-card cargando-card" />)}</div>}
+      {error && (
+        <div className="aviso-carga" role="alert">
+          <b>No pudimos cargar el catálogo</b>
+          <p>Revisa tu conexión e inténtalo de nuevo.</p>
+          <button type="button" className="btn btn-outline btn-sm" onClick={() => window.location.reload()}>
+            Recargar
+          </button>
+        </div>
+      )}
 
-      <div className="ligas-grid">
-        {ligas.map((l) => (
-          <Link key={l.id} href={`/catalogo/${l.id}`} className="liga-card" style={{ background: `linear-gradient(140deg, ${l.colores[0]} 0%, ${l.colores[1]} 100%)` }}>
-            {l.imagen && <Imagen refImagen={l.imagen} alt="" sizes="(max-width: 700px) 100vw, 420px" posicion={l.posicion} className="liga-foto" />}
-            <span className="liga-velo" style={{ background: `linear-gradient(150deg, ${l.colores[0]}d9 0%, ${l.colores[1]}b3 55%, rgba(5,10,17,.85) 100%)` }} />
-            <Credito refImagen={l.imagen} enlace={false} />
-            <span className="liga-pais">{l.pais}</span>
-            <h3>{l.nombre}</h3>
-            <p>{l.descripcion}</p>
-            <div className="liga-clubes">
-              {l.clubes.map((c) => (
-                <span key={c}>{c}</span>
-              ))}
-            </div>
-            <div className="liga-pie">
-              <span>
-                {l.cantidad} camiseta{l.cantidad === 1 ? "" : "s"}
-                {l.desde !== null && <> · desde {money(l.desde)}</>}
-              </span>
-              <span className="liga-ir">Ver →</span>
-            </div>
-          </Link>
-        ))}
-      </div>
+      {!catalogo && !error && <EsqueletoCatalogo />}
 
-      {clubes.length > 0 && (
-        <>
-          <div className="section-head">
-            <h2>Por club</h2>
-          </div>
-          <div className="clubes-grid">
-            {clubes.map((p) => (
-              <Link key={p.club} href={`/catalogo/todas?club=${encodeURIComponent(p.club)}`} className="club-card">
-                <span className="club-escudo">
-                  {p.escudo ? <EscudoImg src={p.escudo} alt={`Escudo de ${p.club}`} /> : <ImagenProducto p={p} className="crest-mini" />}
-                </span>
-                <b>{p.club}</b>
+      {ligas.length > 0 && (
+        <Reveal>
+          <div className={s.ligas}>
+            {ligas.map((l) => (
+              <Link
+                key={l.id}
+                href={`/catalogo/${l.id}`}
+                className={s.liga}
+                style={{ background: `linear-gradient(135deg, ${l.colores[0]}, ${l.colores[1]})` }}
+              >
+                {l.imagen && (
+                  <Imagen
+                    refImagen={l.imagen}
+                    alt=""
+                    sizes="(max-width: 700px) 100vw, 420px"
+                    posicion={l.posicion}
+                    className={s.ligaFoto}
+                  />
+                )}
+                <span className={s.ligaVelo} />
+                <p className={s.ligaPais}>{l.pais}</p>
+                <b>{l.nombre}</b>
+                <p>{l.descripcion}</p>
+                <div className={s.ligaPie}>
+                  <span>
+                    {l.cantidad} camiseta{l.cantidad === 1 ? "" : "s"}
+                    {l.desde !== null && <> · desde {money(l.desde)}</>}
+                  </span>
+                  <span className={s.ligaIr}>Explorar</span>
+                </div>
               </Link>
             ))}
           </div>
-        </>
+        </Reveal>
       )}
-      <div style={{ height: 60 }} />
+
+      {clubes.length > 0 && (
+        <Reveal delayMs={60}>
+          <section aria-labelledby="tit-clubes-cat">
+            <div className={s.cabeza}>
+              <div className={s.cabezaTexto}>
+                <p className="eyebrow">Tu equipo</p>
+                <h2 id="tit-clubes-cat">Por club</h2>
+                <p className={s.nota}>Acceso rápido a la camiseta de tu afición.</p>
+              </div>
+              <Link className={s.linkMas} href="/catalogo/todas?ofertas=1">
+                Ver ofertas
+              </Link>
+            </div>
+            <div className={s.clubes}>
+              {clubes.map((p) => (
+                <Link
+                  key={p.club}
+                  href={`/catalogo/todas?club=${encodeURIComponent(p.club)}`}
+                  className={s.clubCard}
+                >
+                  <span className={s.clubEscudo}>
+                    {p.escudo ? (
+                      <EscudoImg src={p.escudo} alt={`Escudo de ${p.club}`} />
+                    ) : (
+                      <ImagenProducto p={p} className="crest-mini" />
+                    )}
+                  </span>
+                  <b>{p.club}</b>
+                </Link>
+              ))}
+            </div>
+          </section>
+        </Reveal>
+      )}
     </div>
   );
 }

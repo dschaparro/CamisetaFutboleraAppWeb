@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import { CartProvider } from "@/context/CartContext";
 import { ToastProvider } from "@/context/ToastContext";
 import Header from "@/components/store/Header";
@@ -9,7 +10,9 @@ export default function StoreLayout({ children }: { children: React.ReactNode })
     <ToastProvider>
       <CartProvider>
         <div className="store-shell">
-          <Header />
+          <Suspense fallback={null}>
+            <Header />
+          </Suspense>
           <main id="contenido-principal" className="store-main">
             {children}
           </main>

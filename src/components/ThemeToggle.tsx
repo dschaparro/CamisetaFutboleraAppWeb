@@ -1,10 +1,10 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { IconoLuna, IconoSol } from "@/components/icons/pago";
 
-function temaInicial(): "light" | "dark" {
-  if (typeof document === "undefined") return "light";
+/** Solo en cliente: localStorage / data-theme / prefers-color-scheme. */
+function leerTema(): "light" | "dark" {
   const attr = document.documentElement.getAttribute("data-theme");
   if (attr === "light" || attr === "dark") return attr;
   try {
@@ -17,24 +17,35 @@ function temaInicial(): "light" | "dark" {
 }
 
 export default function ThemeToggle() {
-  const [theme, setTheme] = useState<"light" | "dark">(temaInicial);
+  // SSR y primer paint del cliente: mismo valor → sin mismatch de hidratación.
+  const [theme, setTheme] = useState<"light" | "dark">("light");
+
+  useEffect(() => {
+    setTheme(leerTema());
+  }, []);
 
   function toggle() {
     const next = theme === "dark" ? "light" : "dark";
     setTheme(next);
     document.documentElement.setAttribute("data-theme", next);
-    window.localStorage.setItem("theme", next);
+    try {
+      window.localStorage.setItem("theme", next);
+    } catch {
+      /* sin storage */
+    }
   }
+
+  const oscuro = theme === "dark";
 
   return (
     <button
       type="button"
       className="theme-toggle"
       onClick={toggle}
-      aria-label={theme === "dark" ? "Cambiar a tema claro" : "Cambiar a tema oscuro"}
-      title={theme === "dark" ? "Tema oscuro (clic para claro)" : "Tema claro (clic para oscuro)"}
+      aria-label={oscuro ? "Cambiar a tema claro" : "Cambiar a tema oscuro"}
+      title={oscuro ? "Tema oscuro (clic para claro)" : "Tema claro (clic para oscuro)"}
     >
-      {theme === "dark" ? <IconoSol size={18} /> : <IconoLuna size={18} />}
+      {oscuro ? <IconoSol size={18} /> : <IconoLuna size={18} />}
     </button>
   );
 }

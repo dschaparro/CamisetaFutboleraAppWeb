@@ -1,0 +1,247 @@
+/* Login / registro / recuperar — tarjeta centrada, sin vacío enorme. */
+
+.page {
+  padding: clamp(28px, 5vh, 48px) 0 56px;
+  min-height: min(62vh, 720px);
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  background:
+    radial-gradient(ellipse 70% 50% at 50% -10%, color-mix(in srgb, var(--gold) 14%, transparent), transparent 70%),
+    radial-gradient(ellipse 50% 40% at 100% 100%, color-mix(in srgb, var(--blue) 8%, transparent), transparent 65%);
+}
+
+.hint {
+  color: var(--ink-mute) !important;
+}
+
+.card {
+  width: 100%;
+  max-width: 420px;
+  margin: 0 auto;
+  padding: clamp(22px, 3vw, 28px);
+  border-radius: var(--radius-l);
+  border: 1px solid var(--border);
+  background: var(--surface);
+  box-shadow: var(--shadow-md);
+}
+
+.eyebrow {
+  margin: 0 0 6px;
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--gold-ink);
+}
+
+.titulo {
+  margin: 0 0 8px;
+  font-family: var(--font-display);
+  font-size: clamp(1.45rem, 2.4vw, 1.85rem);
+  font-weight: 600;
+  line-height: 1.2;
+  letter-spacing: 0.01em;
+  text-transform: uppercase;
+  color: var(--ink);
+}
+
+.sub {
+  margin: 0 0 22px;
+  color: var(--ink-soft);
+  font-size: 0.92rem;
+  line-height: 1.5;
+}
+
+.avisoCompra {
+  margin: 0 0 22px;
+  padding: 12px 14px;
+  border-radius: var(--radius-m);
+  border: 1px solid color-mix(in srgb, var(--gold) 45%, var(--border));
+  background: color-mix(in srgb, var(--gold) 12%, var(--surface));
+  color: var(--ink);
+  font-size: 0.9rem;
+  line-height: 1.45;
+}
+.avisoCompra a {
+  color: var(--gold-ink);
+  font-weight: 800;
+}
+
+.form {
+  display: grid;
+  gap: 14px;
+}
+.form :global(.field) small {
+  color: var(--danger);
+  font-size: 0.75rem;
+}
+
+/* Envuelve solo input + botón (el label queda fuera). */
+.verPass {
+  position: relative;
+  display: block;
+}
+.verPass :global(input) {
+  padding-right: 4.25rem;
+  width: 100%;
+}
+.verPass button {
+  position: absolute;
+  top: 50%;
+  right: 6px;
+  transform: translateY(-50%);
+  height: calc(100% - 8px);
+  min-width: 3.25rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 10px;
+  border: none;
+  border-radius: calc(var(--radius-s) - 2px);
+  background: transparent;
+  color: var(--ink-mute);
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  cursor: pointer;
+  line-height: 1;
+}
+.verPass button:hover {
+  color: var(--gold-ink);
+  background: color-mix(in srgb, var(--gold) 12%, transparent);
+}
+.verPass button:focus-visible {
+  outline: 2px solid var(--gold);
+  outline-offset: 1px;
+}
+
+.campoError :global(input) {
+  border-color: var(--danger);
+}
+.campoError :global(input:focus) {
+  border-color: var(--danger);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--danger) 22%, transparent);
+}
+
+.acciones {
+  display: grid;
+  gap: 10px;
+  margin-top: 2px;
+}
+
+.olvidaste {
+  display: block;
+  text-align: right;
+  margin: -4px 0 0;
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: var(--gold-ink);
+  text-decoration: none;
+}
+.olvidaste:hover {
+  color: var(--gold-strong);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.alterno {
+  margin: 18px 0 0;
+  text-align: center;
+  font-size: 0.88rem;
+  color: var(--ink-soft);
+  line-height: 1.5;
+}
+.alterno a {
+  color: var(--gold-ink);
+  font-weight: 800;
+}
+
+.exito {
+  display: grid;
+  gap: 10px;
+  padding: 14px 16px;
+  margin-bottom: 18px;
+  border-radius: var(--radius-m);
+  border: 1px solid color-mix(in srgb, var(--ok) 35%, var(--border));
+  background: color-mix(in srgb, var(--ok) 12%, var(--surface));
+  color: var(--ink);
+  font-size: 0.9rem;
+  line-height: 1.45;
+}
+.exito b {
+  font-size: 0.95rem;
+}
+
+.pasos {
+  display: flex;
+  gap: 8px;
+  margin: 0 0 18px;
+  padding: 0;
+  list-style: none;
+}
+.paso {
+  flex: 1;
+  height: 4px;
+  border-radius: 999px;
+  background: var(--border);
+}
+.pasoActivo {
+  background: var(--gold);
+}
+
+.demo {
+  margin-top: 22px;
+  border: 1px dashed color-mix(in srgb, var(--gold) 55%, var(--border));
+  border-radius: var(--radius-m);
+  padding: 14px;
+  background: color-mix(in srgb, var(--gold) 8%, var(--surface));
+}
+.demo b {
+  display: block;
+  font-size: 0.85rem;
+  margin-bottom: 4px;
+  color: var(--ink);
+}
+.demo p {
+  font-size: 0.78rem;
+  color: var(--ink-mute);
+  margin: 0 0 10px;
+  line-height: 1.4;
+}
+.demo ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: grid;
+  gap: 6px;
+}
+.demo li button {
+  width: 100%;
+  text-align: left;
+  display: grid;
+  gap: 2px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--ink);
+  border-radius: var(--radius-s);
+  padding: 8px 10px;
+  font-size: 0.8rem;
+  cursor: pointer;
+}
+.demo li button:hover {
+  border-color: var(--gold);
+}
+.demo li span {
+  color: var(--ink-mute);
+  font-size: 0.72rem;
+}
+
+@media (max-width: 520px) {
+  .card {
+    padding: 20px 16px;
+    border-radius: var(--radius-m);
+    box-shadow: var(--shadow-sm);
+  }
+}
