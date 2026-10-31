@@ -19,14 +19,18 @@ function estadoHttp(err: unknown): number | null {
 
 export async function POST(request: Request) {
   if (!allowAttempt(`chat:${clientKey(request)}`, LIMITE_MENSAJES, VENTANA_MS)) {
-    return errorJson(429, "RATE_LIMITED", "Enviaste muchos mensajes seguidos. Espera unos minutos o escrÌbenos por WhatsApp.");
+    return errorJson(
+      429,
+      "RATE_LIMITED",
+      "Enviaste muchos mensajes seguidos. Espera unos minutos o escr√≠benos por WhatsApp.",
+    );
   }
 
   let body: unknown;
   try {
     body = await request.json();
   } catch {
-    return errorJson(400, "VALIDATION_ERROR", "Cuerpo JSON inv·lido");
+    return errorJson(400, "VALIDATION_ERROR", "Cuerpo JSON inv√°lido");
   }
   const datos = typeof body === "object" && body !== null ? (body as Record<string, unknown>) : {};
 
@@ -41,14 +45,18 @@ export async function POST(request: Request) {
     if (err instanceof ConversacionInvalidaError) return errorJson(400, "VALIDATION_ERROR", err.message);
     if (err instanceof ClaudeConfigError) {
       console.error("[asistente]", err.message);
-      return errorJson(503, "IA_NO_CONFIGURADA", "El asistente no est· disponible en este momento.");
+      return errorJson(503, "IA_NO_CONFIGURADA", "El asistente no est√° disponible en este momento.");
     }
     const status = estadoHttp(err);
     console.error("[asistente] fallo al llamar a la API:", status ?? "", err instanceof Error ? err.message : err);
     if (status === 429 || status === 529) {
-      return errorJson(503, "IA_SATURADA", "El asistente est· muy ocupado. Intenta en un momento o escrÌbenos por WhatsApp.");
+      return errorJson(
+        503,
+        "IA_SATURADA",
+        "El asistente est√° muy ocupado. Intenta en un momento o escr√≠benos por WhatsApp.",
+      );
     }
-    return errorJson(502, "IA_ERROR", "El asistente no pudo responder. Intenta de nuevo o escrÌbenos por WhatsApp.");
+    return errorJson(502, "IA_ERROR", "El asistente no pudo responder. Intenta de nuevo o escr√≠benos por WhatsApp.");
   }
 
   const encoder = new TextEncoder();
@@ -60,7 +68,7 @@ export async function POST(request: Request) {
         if (done) controller.close();
         else controller.enqueue(encoder.encode(value));
       } catch (err) {
-        console.error("[asistente] el stream se cortÛ:", err instanceof Error ? err.message : err);
+        console.error("[asistente] el stream se cort√≥:", err instanceof Error ? err.message : err);
         controller.error(err);
       }
     },
