@@ -61,7 +61,11 @@ Stub: `tienda/infrastructure/storage-supabase.ts` + `SUPABASE_STORAGE_BUCKET`.
 
 ## 3. Correo
 
-Puerto `NotificadorPedido` + `correo-stub.ts`. Env: `RESEND_API_KEY` o `SMTP_*`.
+- Reset de contraseña: `identidad/infrastructure/correo-reset.ts` → **Resend** si hay `RESEND_API_KEY`.
+- Pedidos: stub `correo-stub.ts` (aún no envía).
+- Variables: `RESEND_API_KEY`, opcional `CORREO_FROM` (por defecto `Camiseta Futbolera <onboarding@resend.dev>`).
+- Sin dominio verificado, Resend solo entrega al correo de la cuenta Resend (útil para demos).
+- En Vercel hace falta también `APP_URL=https://camisetafutbolera-app.vercel.app` (enlace del mail).
 
 ## 4. Vercel
 
@@ -71,3 +75,7 @@ npm run build
 ```
 
 `vercel.json` fija framework/región. `APP_URL` = URL del proyecto en Vercel.
+
+`DATABASE_URL` en Production debe ser el **Transaction pooler** (`…pooler.supabase.com:6543/…`).
+El modo Session (`:5432`) limita a ~15 clientes y en Vercel dispara `EMAXCONNSESSION`.
+El código fuerza `:6543` en Vercel si aún viene `:5432`, pero conviene dejar la variable bien puesta.

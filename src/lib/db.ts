@@ -2,20 +2,34 @@ import pg from "pg";
 
 /**
  * Conexión a PostgreSQL (Supabase) solo desde el servidor, con DATABASE_URL.
- * Se usa el pooler de Supabase en modo sesión (IPv4). Un único pool por proceso,
- * guardado en globalThis para no abrir conexiones nuevas en cada recarga de `npm run dev`.
+ * En Vercel hay que usar el pooler en modo transacción (:6543): el modo sesión
+ * (:5432) se agota con ~15 clientes (EMAXCONNSESSION) bajo instancias serverless.
+ * Un único pool por proceso en globalThis evita pools nuevos en cada recarga de `npm run dev`.
  */
 const global = globalThis as typeof globalThis & { __cfPool?: pg.Pool };
 
+const enVercel = Boolean(process.env.VERCEL);
+
+/** Si en Vercel aún apunta al pooler sesión (5432), forzar transacción (6543). */
+function connectionString(): string {
+  const raw = process.env.DATABASE_URL?.trim();
+  if (!raw) throw new Error("Falta DATABASE_URL en el entorno");
+  if (enVercel && /pooler\.supabase\.com:5432\b/i.test(raw)) {
+    return raw.replace(/:5432\b/i, ":6543");
+  }
+  return raw;
+}
+
 export function pool(): pg.Pool {
   if (!global.__cfPool) {
-    const connectionString = process.env.DATABASE_URL;
-    if (!connectionString) throw new Error("Falta DATABASE_URL en .env.local");
     global.__cfPool = new pg.Pool({
-      connectionString,
+      connectionString: connectionString(),
       ssl: { rejectUnauthorized: false },
-      max: 5,
-      idleTimeoutMillis: 30_000,
+      // Serverless: 1 conexión por instancia. Varias warm con max>1 agotan el pooler.
+      max: enVercel ? 1 : 5,
+      idleTimeoutMillis: enVercel ? 5_000 : 30_000,
+      connectionTimeoutMillis: 10_000,
+      allowExitOnIdle: enVercel,
     });
   }
   return global.__cfPool;

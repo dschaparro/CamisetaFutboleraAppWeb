@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { solicitarResetPassword } from "@/modules/identidad/application/recuperar-password";
 import { CuentaInvalidaError } from "@/modules/identidad/domain/cuentas";
-import { appBaseUrl, correoResetStub } from "@/modules/identidad/infrastructure/correo-reset";
+import { appBaseUrl, correoReset } from "@/modules/identidad/infrastructure/correo-reset";
 import { allowAttempt } from "@/modules/identidad/infrastructure/rate-limit";
 import { clientesRepo, usuariosRepo } from "@/modules/identidad/infrastructure/repositorios";
 import { resetTokensRepo } from "@/modules/identidad/infrastructure/reset-tokens";
@@ -25,7 +25,7 @@ export async function POST(request: Request) {
       clientes: clientesRepo(),
       usuarios: usuariosRepo(),
       tokens: resetTokensRepo(),
-      mail: correoResetStub,
+      mail: correoReset,
       baseUrl: appBaseUrl(request),
     });
 
