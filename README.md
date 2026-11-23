@@ -24,6 +24,7 @@ Next.js App Router, con monolito modular hexagonal en cinco módulos vivos.
 
 Detalle de defensa: [`docs/checklist-tesis.md`](docs/checklist-tesis.md).
 Decisiones de módulos: [`docs/ADR-modulos.md`](docs/ADR-modulos.md).
+API (Swagger / OpenAPI): [`/docs/api`](/docs/api) · spec [`public/openapi.yaml`](public/openapi.yaml).
 
 ## Stack
 
@@ -99,6 +100,7 @@ src/
 tests/modules/<modulo>/  → espejo de domain/application/infrastructure
 docs/ADR-modulos.md
 docs/checklist-tesis.md
+public/openapi.yaml    → OpenAPI 3 (UI en /docs/api)
 ```
 
 Patrón de borde: route valida HTTP/sesión → inyecta el puerto → llama `application`.

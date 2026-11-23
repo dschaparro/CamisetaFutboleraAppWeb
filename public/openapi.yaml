@@ -1,0 +1,1141 @@
+openapi: 3.0.3
+info:
+  title: Camiseta Futbolera API
+  description: |
+    API REST del monolito Next.js (App Router). Errores canónicos:
+    `{ error: { code, message, campos? } }`.
+
+    **Sesiones (cookies httpOnly)**
+    - `cf_session` — personal del panel (JWT 8 h)
+    - `cf_cliente` — cliente de la tienda (JWT 30 días)
+
+    Las rutas bajo `/api/auth/login`, `/api/auth/ingresar`, `/api/chat`,
+    `/api/cuenta/*`, `/api/tienda/*` y `/api/webhooks/*` no exigen
+    `cf_session` en el proxy; el resto del panel sí.
+  version: 0.1.0
+  contact:
+    name: Camiseta Futbolera — proyecto de grado
+
+servers:
+  - url: /
+    description: Origen actual (local o Vercel)
+
+tags:
+  - name: Auth panel
+  - name: Auth tienda
+  - name: Tienda
+  - name: Pedidos tienda
+  - name: Cuenta
+  - name: Usuarios
+  - name: Inventario
+  - name: Lista compras
+  - name: Pedidos panel
+  - name: Venta manual
+  - name: Informes
+  - name: Admin tienda
+  - name: Webhooks
+
+components:
+  securitySchemes:
+    cookiePanel:
+      type: apiKey
+      in: cookie
+      name: cf_session
+      description: JWT HS256 del personal (Administrador, Vendedor, Bodega, Marketing)
+    cookieCliente:
+      type: apiKey
+      in: cookie
+      name: cf_cliente
+      description: JWT HS256 del cliente de la tienda
+  schemas:
+    Error:
+      type: object
+      required: [error]
+      properties:
+        error:
+          type: object
+          required: [code, message]
+          properties:
+            code:
+              type: string
+              example: VALIDATION_ERROR
+            message:
+              type: string
+            campos:
+              type: object
+              additionalProperties:
+                type: string
+    Usuario:
+      type: object
+      properties:
+        id: { type: string }
+        email: { type: string, format: email }
+        nombre: { type: string }
+        rol:
+          type: string
+          enum: [Administrador, Vendedor, Bodega, Marketing]
+    LoginBody:
+      type: object
+      required: [email, password]
+      properties:
+        email: { type: string, format: email }
+        password: { type: string, format: password }
+    RegistroCliente:
+      type: object
+      required: [nombre, email, password]
+      properties:
+        nombre: { type: string }
+        email: { type: string, format: email }
+        telefono: { type: string, nullable: true }
+        password: { type: string, minLength: 8 }
+    ItemCarrito:
+      type: object
+      required: [slug, talla, manga, cantidad]
+      properties:
+        slug: { type: string }
+        talla: { type: string }
+        manga: { type: string }
+        cantidad: { type: integer, minimum: 1 }
+        personalizacion:
+          type: object
+          additionalProperties: true
+    PedidoCheckout:
+      type: object
+      required: [nombre, email, telefono, direccion, ciudad, medioPago, items]
+      properties:
+        nombre: { type: string }
+        email: { type: string, format: email }
+        telefono: { type: string }
+        direccion: { type: string }
+        ciudad: { type: string }
+        medioPago: { type: string }
+        cupon: { type: string }
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/ItemCarrito"
+    Ok:
+      type: object
+      properties:
+        ok: { type: boolean, example: true }
+
+paths:
+  /api/auth/login:
+    post:
+      tags: [Auth panel]
+      summary: Login del panel
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/LoginBody" }
+      responses:
+        "200":
+          description: "Sesión creada (Set-Cookie cf_session)"
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  user: { $ref: "#/components/schemas/Usuario" }
+        "401":
+          description: Credenciales inválidas
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+        "429":
+          description: Rate limit
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+
+  /api/auth/logout:
+    post:
+      tags: [Auth panel]
+      summary: Cerrar sesión del panel
+      security: [{ cookiePanel: [] }]
+      responses:
+        "200":
+          description: Cookie borrada
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Ok" }
+
+  /api/auth/me:
+    get:
+      tags: [Auth panel]
+      summary: Usuario de la sesión del panel
+      security: [{ cookiePanel: [] }]
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  user: { $ref: "#/components/schemas/Usuario" }
+        "401":
+          description: Sin sesión
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+
+  /api/auth/ingresar:
+    post:
+      tags: [Auth tienda]
+      summary: Ingreso unificado (cliente o personal)
+      description: "Si es cliente setea `cf_cliente`; si es personal, `cf_session`."
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/LoginBody" }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  tipo: { type: string, enum: [cliente, personal] }
+                  destino: { type: string }
+                  nombre: { type: string }
+        "401":
+          description: Credenciales inválidas
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+
+  /api/cuenta/registro:
+    post:
+      tags: [Auth tienda]
+      summary: Registro de cliente
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/RegistroCliente" }
+      responses:
+        "201":
+          description: "Cliente creado + cookie cf_cliente"
+        "409":
+          description: Email en uso
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+
+  /api/cuenta/salir:
+    post:
+      tags: [Auth tienda]
+      summary: Cerrar sesión de cliente
+      security: []
+      responses:
+        "200":
+          description: Cookie cf_cliente borrada
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Ok" }
+
+  /api/cuenta/sesion:
+    get:
+      tags: [Auth tienda]
+      summary: Sesión actual de cliente (opcional)
+      security: []
+      responses:
+        "200":
+          description: "cliente null si no hay sesion"
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  cliente:
+                    type: object
+                    nullable: true
+                    properties:
+                      nombre: { type: string }
+                  demo: { type: boolean }
+
+  /api/cuenta/recuperar:
+    post:
+      tags: [Auth tienda]
+      summary: Solicitar reset de contraseña
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [email]
+              properties:
+                email: { type: string, format: email }
+      responses:
+        "200":
+          description: Mensaje genérico (no revela existencia salvo códigos específicos)
+        "404":
+          description: Cuenta no encontrada (si aplica)
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+
+  /api/cuenta/recuperar/confirmar:
+    get:
+      tags: [Auth tienda]
+      summary: Validar token de reset
+      security: []
+      parameters:
+        - in: query
+          name: token
+          required: true
+          schema: { type: string }
+      responses:
+        "200":
+          description: Token vigente
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Ok" }
+        "400":
+          description: Token inválido o expirado
+    post:
+      tags: [Auth tienda]
+      summary: Confirmar nueva contraseña
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [token, password]
+              properties:
+                token: { type: string }
+                password: { type: string, minLength: 8 }
+      responses:
+        "200":
+          description: Contraseña actualizada
+        "400":
+          description: Token o password inválidos
+
+  /api/tienda/catalogo:
+    get:
+      tags: [Tienda]
+      summary: Catálogo público
+      security: []
+      responses:
+        "200":
+          description: Productos, ligas, promociones, etc.
+        "503":
+          description: BD no disponible
+
+  /api/tienda/ajustes:
+    get:
+      tags: [Tienda]
+      summary: Ajustes públicos del carrito
+      security: []
+      responses:
+        "200":
+          description: Topes de carrito
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  carritoMaxProductos: { type: integer }
+                  carritoMaxCantidad: { type: integer }
+
+  /api/tienda/cupones/validar:
+    post:
+      tags: [Tienda]
+      summary: Validar cupón
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [codigo, items]
+              properties:
+                codigo: { type: string }
+                items:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      slug: { type: string }
+                      cantidad: { type: integer }
+      responses:
+        "200":
+          description: Cupón aplicado
+        "400":
+          description: Cupón inválido
+
+  /api/tienda/imagenes/{id}:
+    get:
+      tags: [Tienda]
+      summary: Imagen de producto/banner
+      security: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string }
+      responses:
+        "200":
+          description: Binario de imagen
+          content:
+            image/*:
+              schema: { type: string, format: binary }
+        "404":
+          description: No encontrada
+
+  /api/chat:
+    post:
+      tags: [Tienda]
+      summary: Chat GOALIX (stream)
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [mensajes]
+              properties:
+                mensajes:
+                  type: array
+                  items:
+                    type: object
+                    additionalProperties: true
+                pagina: { type: string }
+      responses:
+        "200":
+          description: "Respuesta en `text/plain` (stream)"
+          content:
+            text/plain:
+              schema: { type: string }
+        "429":
+          description: Rate limit
+
+  /api/tienda/pedidos:
+    post:
+      tags: [Pedidos tienda]
+      summary: Crear pedido (checkout)
+      security: [{ cookieCliente: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/PedidoCheckout" }
+      responses:
+        "201":
+          description: Pedido creado
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id: { type: string }
+                  siguiente: { type: string }
+        "401":
+          description: Sin sesión de cliente
+
+  /api/tienda/pedidos/{id}:
+    get:
+      tags: [Pedidos tienda]
+      summary: Detalle de pedido (clave `k` o sesión)
+      security: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string }
+        - in: query
+          name: k
+          schema: { type: string }
+          description: Clave de acceso del pedido (invitado)
+      responses:
+        "200":
+          description: Pedido + monto + modo pasarela
+        "404":
+          description: No encontrado
+
+  /api/tienda/pedidos/{id}/pago:
+    post:
+      tags: [Pedidos tienda]
+      summary: Iniciar / confirmar pago
+      description: |
+        Mercado Pago → `{ redirectUrl }`. Pasarela simulada → métodos
+        `tarjeta` | `guardada` | `pse` | `nequi`.
+      security: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string }
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                k: { type: string }
+                metodo: { type: string }
+      responses:
+        "200":
+          description: Redirect MP o resultado simulado
+        "409":
+          description: Ya pagado
+
+  /api/tienda/pedidos/{id}/pago/sincronizar:
+    post:
+      tags: [Pedidos tienda]
+      summary: Sincronizar estado de pago MP
+      security: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [paymentId]
+              properties:
+                paymentId: { type: string }
+                k: { type: string }
+      responses:
+        "200":
+          description: Estado actualizado
+
+  /api/cuenta/yo:
+    get:
+      tags: [Cuenta]
+      summary: Perfil + pedidos del cliente
+      security: [{ cookieCliente: [] }]
+      responses:
+        "200":
+          description: "`{ cliente, pedidos, perfil }`"
+        "401":
+          description: Sin sesión
+
+  /api/cuenta/datos:
+    patch:
+      tags: [Cuenta]
+      summary: Actualizar datos personales
+      security: [{ cookieCliente: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [nombre]
+              properties:
+                nombre: { type: string }
+                telefono: { type: string, nullable: true }
+      responses:
+        "200":
+          description: Cliente actualizado
+
+  /api/cuenta/password:
+    post:
+      tags: [Cuenta]
+      summary: Cambiar contraseña (logueado)
+      security: [{ cookieCliente: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [actual, nueva]
+              properties:
+                actual: { type: string }
+                nueva: { type: string, minLength: 8 }
+      responses:
+        "200":
+          description: OK
+
+  /api/cuenta/direcciones:
+    post:
+      tags: [Cuenta]
+      summary: Agregar dirección
+      security: [{ cookieCliente: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [destinatario, telefono, direccion, ciudad]
+              properties:
+                alias: { type: string }
+                destinatario: { type: string }
+                telefono: { type: string }
+                direccion: { type: string }
+                ciudad: { type: string }
+                indicaciones: { type: string }
+                predeterminada: { type: boolean }
+      responses:
+        "200":
+          description: "`{ perfil }`"
+
+  /api/cuenta/direcciones/{id}:
+    patch:
+      tags: [Cuenta]
+      summary: Editar dirección o marcar predeterminada
+      security: [{ cookieCliente: [] }]
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string }
+      responses:
+        "200":
+          description: "`{ perfil }`"
+    delete:
+      tags: [Cuenta]
+      summary: Eliminar dirección
+      security: [{ cookieCliente: [] }]
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string }
+      responses:
+        "200":
+          description: "`{ perfil }`"
+
+  /api/cuenta/tarjetas:
+    post:
+      tags: [Cuenta]
+      summary: Guardar tarjeta (simulada / tokenizada en UI)
+      security: [{ cookieCliente: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [numero, vencimiento, titular]
+              properties:
+                numero: { type: string }
+                vencimiento: { type: string }
+                titular: { type: string }
+      responses:
+        "200":
+          description: "`{ perfil }`"
+
+  /api/cuenta/tarjetas/{id}:
+    patch:
+      tags: [Cuenta]
+      summary: Marcar tarjeta predeterminada
+      security: [{ cookieCliente: [] }]
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string }
+      responses:
+        "200":
+          description: "`{ perfil }`"
+    delete:
+      tags: [Cuenta]
+      summary: Eliminar tarjeta
+      security: [{ cookieCliente: [] }]
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string }
+      responses:
+        "200":
+          description: "`{ perfil }`"
+
+  /api/cuenta/carrito:
+    get:
+      tags: [Cuenta]
+      summary: Carrito persistido del cliente
+      security: [{ cookieCliente: [] }]
+      responses:
+        "200":
+          description: "`{ items }`"
+    put:
+      tags: [Cuenta]
+      summary: Reemplazar carrito
+      security: [{ cookieCliente: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [items]
+              properties:
+                items:
+                  type: array
+                  items: { $ref: "#/components/schemas/ItemCarrito" }
+      responses:
+        "200":
+          description: "`{ items }`"
+
+  /api/cuenta/carrito/enlazar:
+    post:
+      tags: [Cuenta]
+      summary: Fusionar carrito de invitado al loguearse
+      security: [{ cookieCliente: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                items:
+                  type: array
+                  items: { $ref: "#/components/schemas/ItemCarrito" }
+      responses:
+        "200":
+          description: "`{ items }`"
+
+  /api/usuarios:
+    get:
+      tags: [Usuarios]
+      summary: Listar usuarios del panel
+      security: [{ cookiePanel: [] }]
+      responses:
+        "200":
+          description: "`{ usuarios }`"
+    post:
+      tags: [Usuarios]
+      summary: Crear usuario
+      security: [{ cookiePanel: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [nombre, email, rol, password]
+              properties:
+                nombre: { type: string }
+                email: { type: string, format: email }
+                rol:
+                  type: string
+                  enum: [Administrador, Vendedor, Bodega, Marketing]
+                password: { type: string, minLength: 8 }
+      responses:
+        "201":
+          description: Usuario creado
+        "409":
+          description: Conflicto
+
+  /api/usuarios/{id}:
+    patch:
+      tags: [Usuarios]
+      summary: Actualizar usuario
+      security: [{ cookiePanel: [] }]
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string }
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                nombre: { type: string }
+                rol: { type: string }
+                activo: { type: boolean }
+                password: { type: string }
+      responses:
+        "200":
+          description: Usuario actualizado
+
+  /api/inventario:
+    get:
+      tags: [Inventario]
+      summary: Listar inventario
+      security: [{ cookiePanel: [] }]
+      responses:
+        "200":
+          description: Lista de productos
+
+  /api/inventario/{id}:
+    patch:
+      tags: [Inventario]
+      summary: Actualizar costo/stock/proveedor
+      security: [{ cookiePanel: [] }]
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string }
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                costo: { type: number }
+                stock: { type: integer }
+                proveedor: { type: string }
+      responses:
+        "200":
+          description: "`{ producto }`"
+
+  /api/inventario/compras:
+    post:
+      tags: [Inventario]
+      summary: Registrar compra a proveedor
+      security: [{ cookiePanel: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [productoId, cantidad, costoUnitario, proveedor]
+              properties:
+                productoId: { type: string }
+                cantidad: { type: integer }
+                costoUnitario: { type: number }
+                proveedor: { type: string }
+                nota: { type: string }
+                listaId: { type: string }
+      responses:
+        "201":
+          description: "`{ compra }`"
+
+  /api/lista-compras:
+    get:
+      tags: [Lista compras]
+      summary: Listar faltantes / pedidos a proveedor
+      security: [{ cookiePanel: [] }]
+      responses:
+        "200":
+          description: "`{ items }`"
+
+  /api/lista-compras/{id}:
+    patch:
+      tags: [Lista compras]
+      summary: Cambiar estado de ítem
+      security: [{ cookiePanel: [] }]
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string }
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [estado]
+              properties:
+                estado: { type: string }
+                nota: { type: string }
+      responses:
+        "200":
+          description: "`{ item }`"
+
+  /api/pedidos:
+    get:
+      tags: [Pedidos panel]
+      summary: Pedidos (vista panel)
+      security: [{ cookiePanel: [] }]
+      responses:
+        "200":
+          description: "`{ pedidos }`"
+
+  /api/pedidos/{id}:
+    patch:
+      tags: [Pedidos panel]
+      summary: Cambiar estado / guía
+      security: [{ cookiePanel: [] }]
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string }
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [estado]
+              properties:
+                estado:
+                  type: string
+                  enum:
+                    - Pendiente de pago
+                    - Alistamiento
+                    - Enviado
+                    - Entregado
+                    - Cancelado
+                guia: { type: string }
+      responses:
+        "200":
+          description: "`{ pedido }`"
+        "409":
+          description: Transición inválida
+
+  /api/venta-manual:
+    get:
+      tags: [Venta manual]
+      summary: Productos disponibles para venta manual
+      security: [{ cookiePanel: [] }]
+      responses:
+        "200":
+          description: "`{ productos }`"
+    post:
+      tags: [Venta manual]
+      summary: Registrar venta manual
+      security: [{ cookiePanel: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [canal, modoPago, nombre, telefono, items]
+              properties:
+                canal:
+                  type: string
+                  enum: [WhatsApp, Redes, Punto físico]
+                modoPago:
+                  type: string
+                  enum: [anticipado, abono, contraentrega]
+                documento: { type: string }
+                nombre: { type: string }
+                email: { type: string }
+                telefono: { type: string }
+                direccion: { type: string }
+                ciudad: { type: string }
+                items:
+                  type: array
+                  items:
+                    type: object
+                    additionalProperties: true
+      responses:
+        "201":
+          description: "`{ pedido, enListaDeCompras }`"
+
+  /api/informes:
+    post:
+      tags: [Informes]
+      summary: Generar informe con IA
+      security: [{ cookiePanel: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [solicitud]
+              properties:
+                solicitud: { type: string }
+      responses:
+        "200":
+          description: "`{ informe }`"
+        "503":
+          description: IA no disponible
+
+  /api/reportes/exportar:
+    get:
+      tags: [Informes]
+      summary: Exportar pedidos CSV
+      security: [{ cookiePanel: [] }]
+      responses:
+        "200":
+          description: Archivo CSV
+          content:
+            text/csv:
+              schema: { type: string }
+
+  /api/admin/tienda:
+    get:
+      tags: [Admin tienda]
+      summary: Datos del panel de tienda
+      security: [{ cookiePanel: [] }]
+      responses:
+        "200":
+          description: Colecciones del catálogo
+
+  /api/admin/tienda/ajustes:
+    get:
+      tags: [Admin tienda]
+      summary: Leer ajustes
+      security: [{ cookiePanel: [] }]
+      responses:
+        "200":
+          description: Ajustes
+    patch:
+      tags: [Admin tienda]
+      summary: Actualizar topes de carrito
+      security: [{ cookiePanel: [] }]
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                carritoMaxProductos: { type: integer }
+                carritoMaxCantidad: { type: integer }
+      responses:
+        "200":
+          description: Ajustes guardados
+
+  /api/admin/tienda/{coleccion}:
+    post:
+      tags: [Admin tienda]
+      summary: Crear ítem de colección
+      description: "\"coleccion: productos | ligas | promociones | cupones | banners\"
+"
+      security: [{ cookiePanel: [] }]
+      parameters:
+        - in: path
+          name: coleccion
+          required: true
+          schema:
+            type: string
+            enum: [productos, ligas, promociones, cupones, banners]
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: true
+      responses:
+        "200":
+          description: "`{ item }`"
+        "404":
+          description: Colección desconocida
+
+  /api/admin/tienda/{coleccion}/{id}:
+    patch:
+      tags: [Admin tienda]
+      summary: Actualizar ítem
+      security: [{ cookiePanel: [] }]
+      parameters:
+        - in: path
+          name: coleccion
+          required: true
+          schema:
+            type: string
+            enum: [productos, ligas, promociones, cupones, banners]
+        - in: path
+          name: id
+          required: true
+          schema: { type: string }
+      responses:
+        "200":
+          description: "`{ item }`"
+    delete:
+      tags: [Admin tienda]
+      summary: Eliminar ítem (no productos)
+      security: [{ cookiePanel: [] }]
+      parameters:
+        - in: path
+          name: coleccion
+          required: true
+          schema: { type: string }
+        - in: path
+          name: id
+          required: true
+          schema: { type: string }
+      responses:
+        "200":
+          description: Eliminado
+        "405":
+          description: No permitido para productos
+
+  /api/admin/tienda/imagenes:
+    post:
+      tags: [Admin tienda]
+      summary: Subir imagen (multipart)
+      security: [{ cookiePanel: [] }]
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [archivo, destino, id]
+              properties:
+                archivo: { type: string, format: binary }
+                destino: { type: string, enum: [producto, banner] }
+                id: { type: string }
+      responses:
+        "200":
+          description: "`{ imagenId }` / `{ item }`"
+    patch:
+      tags: [Admin tienda]
+      summary: Quitar o reasignar imagen
+      security: [{ cookiePanel: [] }]
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: true
+      responses:
+        "200":
+          description: OK
+
+  /api/webhooks/mercadopago:
+    get:
+      tags: [Webhooks]
+      summary: Verificación / health del webhook
+      security: []
+      responses:
+        "200":
+          description: "`{ ok, servicio }`"
+    post:
+      tags: [Webhooks]
+      summary: Notificación Mercado Pago
+      description: "Valida `x-signature` y `x-request-id`."
+      security: []
+      parameters:
+        - in: header
+          name: x-signature
+          schema: { type: string }
+        - in: header
+          name: x-request-id
+          schema: { type: string }
+        - in: query
+          name: data.id
+          schema: { type: string }
+        - in: query
+          name: type
+          schema: { type: string }
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                type: { type: string }
+                data:
+                  type: object
+                  properties:
+                    id: { type: string }
+      responses:
+        "200":
+          description: Procesado
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Ok" }
+        "401":
+          description: Firma inválida

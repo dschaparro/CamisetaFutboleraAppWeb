@@ -1202,3 +1202,23 @@ button.account-btn{background:transparent;cursor:pointer;}
 @media (prefers-reduced-motion:reduce){
   .nav-drawer,.nav-drawer-fondo,.nav-toggle-bars,.nav-toggle-bars::before,.nav-toggle-bars::after{transition:none;}
 }
+
+/* Docs API (Swagger) — fuera del chrome de tienda/panel */
+.docs-api-shell{min-height:100vh;background:#fafafa;color:#1b1b1b;}
+.docs-api-bar{border-bottom:1px solid #e5e7eb;background:#fff;padding:18px 0;}
+.docs-api-bar-inner{width:100%;max-width:1400px;margin:0 auto;padding:0 20px;display:flex;align-items:flex-end;justify-content:space-between;gap:16px;flex-wrap:wrap;}
+.docs-api-eyebrow{margin:0;font-size:.72rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#6b7280;}
+.docs-api-bar h1{margin:4px 0 0;font-family:var(--font-display);font-size:1.45rem;letter-spacing:.02em;text-transform:uppercase;}
+.docs-api-note{margin:6px 0 0;font-size:.85rem;color:#4b5563;}
+.docs-api-note a{color:var(--blue);font-weight:700;text-decoration:underline;text-underline-offset:2px;}
+.docs-api-nav{display:flex;gap:10px;}
+.docs-api-nav a{font-weight:700;font-size:.85rem;padding:8px 12px;border:1px solid #e5e7eb;border-radius:8px;background:#fff;}
+.docs-api-nav a:hover{border-color:#c9a227;background:#fffbeb;}
+.swagger-host{max-width:1400px;margin:0 auto;padding:8px 12px 48px;}
+.swagger-host .swagger-ui .topbar{display:none;}
+.swagger-host .swagger-ui .info{margin:16px 0;}
+@media (max-width:720px){
+  .docs-api-bar-inner{align-items:flex-start;}
+  .docs-api-nav{width:100%;}
+  .docs-api-nav a{flex:1;text-align:center;}
+}

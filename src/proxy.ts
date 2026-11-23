@@ -14,7 +14,8 @@ function esApiPublica(pathname: string): boolean {
     pathname === "/api/auth/ingresar" ||
     pathname === "/api/chat" ||
     pathname.startsWith("/api/cuenta/") ||
-    pathname.startsWith("/api/tienda/")
+    pathname.startsWith("/api/tienda/") ||
+    pathname.startsWith("/api/webhooks/")
   );
 }
 
