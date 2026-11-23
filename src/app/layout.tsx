@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import Script from "next/script";
 import { ConfirmProvider } from "@/context/ConfirmContext";
 import "./globals.css";
@@ -11,6 +11,16 @@ export const metadata: Metadata = {
     icon: [{ url: "/icono.jpeg", type: "image/jpeg" }],
     apple: [{ url: "/icono.jpeg", type: "image/jpeg" }],
   },
+};
+
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  viewportFit: "cover",
+  themeColor: [
+    { media: "(prefers-color-scheme: light)", color: "#f4f6fa" },
+    { media: "(prefers-color-scheme: dark)", color: "#0a1626" },
+  ],
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
