@@ -2,7 +2,16 @@
 
 import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { useEffect, useId, useRef, useState } from "react";
+import { useEffect, useId, useRef, useState, useSyncExternalStore } from "react";
+import { createPortal } from "react-dom";
+
+function useClienteMontado() {
+  return useSyncExternalStore(
+    () => () => {},
+    () => true,
+    () => false,
+  );
+}
 import { useCart } from "@/context/CartContext";
 import BrandMark from "@/components/BrandMark";
 import ThemeToggle from "@/components/ThemeToggle";
@@ -69,6 +78,7 @@ export default function Header() {
   const [navAbierta, setNavAbierta] = useState(false);
   const [buscaAbierta, setBuscaAbierta] = useState(false);
   const [rutaMenus, setRutaMenus] = useState(pathname);
+  const portalListo = useClienteMontado();
   const navId = useId();
   const buscaId = useId();
   const primerLink = useRef<HTMLAnchorElement>(null);
@@ -141,159 +151,190 @@ export default function Header() {
     ));
   }
 
-  return (
-    <header className="store-header">
-      <a href="#contenido-principal" className="skip-link">
-        Saltar al contenido
-      </a>
-      <div className="topline topline-marquee" aria-label="Avisos de la tienda">
-        <div className="topline-marquee-track">
-          {[0, 1].map((copia) => (
-            <div key={copia} className="topline-marquee-grupo" aria-hidden={copia === 1 ? true : undefined}>
-              {AVISOS.map((msg) => (
-                <span key={`${copia}-${msg}`} className="topline-marquee-item">
-                  {msg}
-                </span>
+  // Portal a body: backdrop-filter del header atrapa position:fixed en Safari/iOS.
+  const drawer =
+    portalListo &&
+    createPortal(
+      <>
+        <div
+          className={`nav-drawer-fondo${navAbierta ? " abierto" : ""}`}
+          hidden={!navAbierta}
+          onClick={() => setNavAbierta(false)}
+          aria-hidden="true"
+        />
+        <nav
+          id={navId}
+          className={`nav-drawer${navAbierta ? " abierto" : ""}`}
+          aria-label="Menú móvil"
+          hidden={!navAbierta}
+        >
+          <div className="nav-drawer-head">
+            <b>Menú</b>
+            <button type="button" className="nav-drawer-cerrar" aria-label="Cerrar" onClick={() => setNavAbierta(false)}>
+              ×
+            </button>
+          </div>
+          <div className="store-nav store-nav-mob">{links(true)}</div>
+          {cliente && (
+            <div className="nav-drawer-cuenta">
+              {[
+                ["pedidos", "Mis pedidos"],
+                ["datos", "Mis datos"],
+                ["direcciones", "Direcciones"],
+                ["seguridad", "Cambiar contraseña"],
+              ].map(([id, label]) => (
+                <Link key={id} href={`/cuenta?seccion=${id}`} onClick={() => setNavAbierta(false)}>
+                  {label}
+                </Link>
               ))}
             </div>
-          ))}
-        </div>
-      </div>
-      <div className="mainline">
-        <div className="wrap header-bar">
-          <button
-            type="button"
-            className="nav-toggle"
-            aria-expanded={navAbierta}
-            aria-controls={navId}
-            aria-label={navAbierta ? "Cerrar menú" : "Abrir menú"}
-            onClick={() => {
-              setBuscaAbierta(false);
-              setNavAbierta((v) => !v);
-            }}
-          >
-            <span className={`nav-toggle-bars${navAbierta ? " abierto" : ""}`} aria-hidden="true" />
-          </button>
-
-          <Link href="/" className="brand" onClick={() => setNavAbierta(false)}>
-            <BrandMark size={34} priority />
-            <span className="brand-name">Camiseta Futbolera</span>
+          )}
+          <Link href="/terminos" className="nav-drawer-extra" onClick={() => setNavAbierta(false)}>
+            Ayuda · Términos y envíos
           </Link>
-
-          <nav className="store-nav store-nav-desk" aria-label="Principal">
-            {links()}
-          </nav>
-
-          <div className="store-search-desk">
-            <SearchBox />
-          </div>
-
-          <div className="header-actions">
-            <button
-              type="button"
-              className="icon-btn busca-toggle"
-              aria-expanded={buscaAbierta}
-              aria-controls={buscaId}
-              aria-label={buscaAbierta ? "Cerrar búsqueda" : "Buscar"}
-              onClick={() => {
-                setNavAbierta(false);
-                setBuscaAbierta((v) => !v);
-              }}
-            >
-              <IconoBuscar />
-            </button>
-            <ThemeToggle />
+          <div className="nav-drawer-pie">
             {cliente ? (
-              <div className="account-menu" onBlur={(e) => !e.currentTarget.contains(e.relatedTarget) && setMenu(false)}>
-                <button
-                  type="button"
-                  className="account-btn"
-                  aria-haspopup="menu"
-                  aria-expanded={menu}
-                  onClick={() => setMenu((m) => !m)}
-                  onKeyDown={(e) => e.key === "Escape" && setMenu(false)}
-                >
-                  <span className="account-inicial" aria-hidden="true">
-                    {cliente.nombre.trim().charAt(0).toUpperCase()}
-                  </span>
-                  <span className="account-nombre">{cliente.nombre.split(" ")[0]}</span>
-                </button>
-                {menu && (
-                  <div className="account-drop" role="menu">
-                    {[
-                      ["pedidos", "Mis pedidos"],
-                      ["datos", "Mis datos"],
-                      ["direcciones", "Direcciones"],
-                      ["seguridad", "Cambiar contraseña"],
-                    ].map(([id, label]) => (
-                      <Link
-                        key={id}
-                        role="menuitem"
-                        href={`/cuenta?seccion=${id}`}
-                        onClick={() => setMenu(false)}
-                      >
-                        {label}
-                      </Link>
-                    ))}
-                    <button role="menuitem" type="button" onClick={salir}>
-                      Cerrar sesión
-                    </button>
-                  </div>
-                )}
-              </div>
+              <button type="button" className="btn btn-outline btn-block" onClick={salir}>
+                Cerrar sesión
+              </button>
             ) : (
-              <Link href="/ingresar" className="account-btn account-btn-desk">
-                Ingresar
+              <Link href="/ingresar" className="btn btn-gold btn-block" onClick={() => setNavAbierta(false)}>
+                Ingresar o crear cuenta
               </Link>
             )}
-            <Link href="/carrito" className="cart-btn" aria-label={`Carrito, ${count} productos`}>
-              <IconoCarrito />
-              <span className="cart-label">Carrito</span>
-              {count > 0 && (
-                <span className="cart-badge" key={count}>
-                  {count}
-                </span>
-              )}
-            </Link>
+          </div>
+        </nav>
+      </>,
+      document.body,
+    );
+
+  return (
+    <>
+      <header className="store-header">
+        <a href="#contenido-principal" className="skip-link">
+          Saltar al contenido
+        </a>
+        <div className="topline topline-marquee" aria-label="Avisos de la tienda">
+          <div className="topline-marquee-track">
+            {[0, 1].map((copia) => (
+              <div key={copia} className="topline-marquee-grupo" aria-hidden={copia === 1 ? true : undefined}>
+                {AVISOS.map((msg) => (
+                  <span key={`${copia}-${msg}`} className="topline-marquee-item">
+                    {msg}
+                  </span>
+                ))}
+              </div>
+            ))}
           </div>
         </div>
-
-        <div id={buscaId} className={`busca-panel${buscaAbierta ? " abierto" : ""}`} hidden={!buscaAbierta}>
-          <div className="wrap">
-            <SearchBox inputRef={buscaInput} />
-          </div>
-        </div>
-      </div>
-
-      <div
-        className={`nav-drawer-fondo${navAbierta ? " abierto" : ""}`}
-        hidden={!navAbierta}
-        onClick={() => setNavAbierta(false)}
-        aria-hidden="true"
-      />
-      <nav id={navId} className={`nav-drawer${navAbierta ? " abierto" : ""}`} aria-label="Menú móvil" hidden={!navAbierta}>
-        <div className="nav-drawer-head">
-          <b>Menú</b>
-          <button type="button" className="nav-drawer-cerrar" aria-label="Cerrar" onClick={() => setNavAbierta(false)}>
-            ×
-          </button>
-        </div>
-        <div className="store-nav store-nav-mob">{links(true)}</div>
-        <Link href="/terminos" className="nav-drawer-extra" onClick={() => setNavAbierta(false)}>
-          Ayuda · Términos y envíos
-        </Link>
-        <div className="nav-drawer-pie">
-          {cliente ? (
-            <button type="button" className="btn btn-outline btn-block" onClick={salir}>
-              Cerrar sesión
+        <div className="mainline">
+          <div className="wrap header-bar">
+            <button
+              type="button"
+              className="nav-toggle"
+              aria-expanded={navAbierta}
+              aria-controls={navId}
+              aria-label={navAbierta ? "Cerrar menú" : "Abrir menú"}
+              onClick={() => {
+                setBuscaAbierta(false);
+                setMenu(false);
+                setNavAbierta((v) => !v);
+              }}
+            >
+              <span className={`nav-toggle-bars${navAbierta ? " abierto" : ""}`} aria-hidden="true" />
             </button>
-          ) : (
-            <Link href="/ingresar" className="btn btn-gold btn-block" onClick={() => setNavAbierta(false)}>
-              Ingresar o crear cuenta
+
+            <Link href="/" className="brand" onClick={() => setNavAbierta(false)}>
+              <BrandMark size={34} priority />
+              <span className="brand-name">Camiseta Futbolera</span>
             </Link>
-          )}
+
+            <nav className="store-nav store-nav-desk" aria-label="Principal">
+              {links()}
+            </nav>
+
+            <div className="store-search-desk">
+              <SearchBox />
+            </div>
+
+            <div className="header-actions">
+              <button
+                type="button"
+                className="icon-btn busca-toggle"
+                aria-expanded={buscaAbierta}
+                aria-controls={buscaId}
+                aria-label={buscaAbierta ? "Cerrar búsqueda" : "Buscar"}
+                onClick={() => {
+                  setNavAbierta(false);
+                  setBuscaAbierta((v) => !v);
+                }}
+              >
+                <IconoBuscar />
+              </button>
+              <ThemeToggle />
+              {cliente ? (
+                <div className="account-menu account-menu-desk" onBlur={(e) => !e.currentTarget.contains(e.relatedTarget) && setMenu(false)}>
+                  <button
+                    type="button"
+                    className="account-btn"
+                    aria-haspopup="menu"
+                    aria-expanded={menu}
+                    onClick={() => setMenu((m) => !m)}
+                    onKeyDown={(e) => e.key === "Escape" && setMenu(false)}
+                  >
+                    <span className="account-inicial" aria-hidden="true">
+                      {cliente.nombre.trim().charAt(0).toUpperCase()}
+                    </span>
+                    <span className="account-nombre">{cliente.nombre.split(" ")[0]}</span>
+                  </button>
+                  {menu && (
+                    <div className="account-drop" role="menu">
+                      {[
+                        ["pedidos", "Mis pedidos"],
+                        ["datos", "Mis datos"],
+                        ["direcciones", "Direcciones"],
+                        ["seguridad", "Cambiar contraseña"],
+                      ].map(([id, label]) => (
+                        <Link
+                          key={id}
+                          role="menuitem"
+                          href={`/cuenta?seccion=${id}`}
+                          onClick={() => setMenu(false)}
+                        >
+                          {label}
+                        </Link>
+                      ))}
+                      <button role="menuitem" type="button" onClick={salir}>
+                        Cerrar sesión
+                      </button>
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <Link href="/ingresar" className="account-btn account-btn-desk">
+                  Ingresar
+                </Link>
+              )}
+              <Link href="/carrito" className="cart-btn" aria-label={`Carrito, ${count} productos`}>
+                <IconoCarrito />
+                <span className="cart-label">Carrito</span>
+                {count > 0 && (
+                  <span className="cart-badge" key={count}>
+                    {count}
+                  </span>
+                )}
+              </Link>
+            </div>
+          </div>
+
+          <div id={buscaId} className={`busca-panel${buscaAbierta ? " abierto" : ""}`} hidden={!buscaAbierta}>
+            <div className="wrap">
+              <SearchBox inputRef={buscaInput} />
+            </div>
+          </div>
         </div>
-      </nav>
-    </header>
+      </header>
+      {drawer}
+    </>
   );
 }
